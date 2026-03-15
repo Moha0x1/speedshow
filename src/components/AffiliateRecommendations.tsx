@@ -103,16 +103,16 @@ export const AffiliateRecommendations = ({ type, results }: AffiliateRecommendat
   if (recommendations.length === 0) return null;
 
   return (
-    <div className="mt-8 space-y-4">
-      <h4 className="text-xs font-bold text-muted uppercase tracking-[0.2em] mb-4">Contextual Recommendations</h4>
-      <div className="grid grid-cols-1 gap-4">
+    <div className="mt-4 space-y-3">
+      <h4 className="text-xs font-bold text-muted uppercase tracking-[0.2em] mb-3">Contextual Recommendations</h4>
+      <div className="grid grid-cols-1 gap-3">
         {recommendations.map((rec, index) => (
           <motion.div
             key={rec.id}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 + (index * 0.1) }}
-            className="group relative overflow-hidden glass p-5 rounded-2xl border-primary/10 hover:border-primary/30 transition-all flex flex-col md:flex-row items-center gap-6"
+            className="group relative overflow-hidden glass p-4 rounded-2xl border-primary/10 hover:border-primary/30 transition-all flex flex-col md:flex-row items-center gap-4"
           >
             <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
               {rec.type === 'vpn' && <Shield size={24} />}

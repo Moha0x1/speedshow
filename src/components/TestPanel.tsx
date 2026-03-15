@@ -81,7 +81,7 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
       initial={{ height: 0, opacity: 0 }}
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
-      className="w-full mt-12 overflow-hidden"
+      className="w-full mt-8 overflow-hidden"
     >
       <div className="glass rounded-[2rem] p-8 md:p-12 border-primary/20 relative">
         {isTesting && (
@@ -91,7 +91,7 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
           </div>
         )}
 
-        <div className="flex justify-between items-start mb-8">
+        <div className="flex justify-between items-start mb-6">
           <div>
             <h2 className="text-3xl font-black text-white capitalize">{type} Results</h2>
             <p className="text-muted">Real-time performance analytics</p>
@@ -113,7 +113,7 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
               {type === 'web3' && renderWeb3Results(results as Web3Results)}
               
               {!isTesting && results && (
-                <div className="mt-12 pt-12 border-t border-white/5">
+                <div className="mt-8 pt-8 border-t border-white/5">
                   <AffiliateRecommendations type={type} results={results} />
                 </div>
               )}

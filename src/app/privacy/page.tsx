@@ -14,12 +14,12 @@ export default function PrivacyPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-grow max-w-4xl mx-auto px-6 py-12 w-full">
+      <main className="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
         <section className="mb-12">
           <h1 className="text-4xl font-black text-white mb-6">
             Privacy <span className="text-primary">Statement</span>
           </h1>
-          <p className="text-muted text-sm font-bold uppercase tracking-widest mb-8">
+          <p className="text-muted text-sm font-bold uppercase tracking-widest mb-6">
             Last Updated: March 15, 2026
           </p>
           

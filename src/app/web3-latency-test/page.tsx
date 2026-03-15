@@ -16,8 +16,8 @@ export default function Web3TestPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-grow max-w-7xl mx-auto px-6 py-12 w-full">
-        <section className="mb-8">
+      <main className="flex-grow max-w-7xl mx-auto px-6 py-8 w-full">
+        <section className="mb-6">
           <h1 className="text-3xl md:text-5xl font-black text-white mb-2">
             Web3 <span className="text-orange-400">Latency</span>
           </h1>

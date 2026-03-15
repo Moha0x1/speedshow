@@ -81,14 +81,14 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
   return (
     <div className="w-full">
       {/* MONETIZATION: TOP BANNER */}
-      <AdBanner position="top" className="mb-12" />
+      <AdBanner position="top" className="mb-8" />
 
       {/* Global Score Panel */}
       {Object.keys(results).length > 0 && (
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-12 glass rounded-[2.5rem] p-8 border-primary/30 flex flex-col md:flex-row items-center justify-between gap-8 h-auto overflow-hidden relative group"
+          className="mb-8 glass rounded-[2.5rem] p-8 border-primary/30 flex flex-col md:flex-row items-center justify-between gap-8 h-auto overflow-hidden relative group"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -z-10 group-hover:bg-primary/20 transition-all" />
           
