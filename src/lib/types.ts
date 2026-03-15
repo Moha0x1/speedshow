@@ -23,6 +23,7 @@ export interface VPNResults {
 }
 
 export interface Web3Results {
+  bitcoin: number;
   ethereum: number;
   base: number;
   arbitrum: number;

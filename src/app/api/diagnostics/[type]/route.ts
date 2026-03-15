@@ -81,6 +81,7 @@ export async function GET(
       break;
     case 'web3':
       results = {
+        bitcoin: Math.floor(Math.random() * 60) + 50, // Mempool latency is usually higher
         ethereum: Math.floor(Math.random() * 50) + 40,
         base: Math.floor(Math.random() * 30) + 20,
         arbitrum: Math.floor(Math.random() * 35) + 25,

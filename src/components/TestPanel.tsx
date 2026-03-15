@@ -66,7 +66,8 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
   const renderWeb3Results = (data: Web3Results) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
       <ScoreGauge score={data.score} label="Web3 Score" />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
+        <MetricItem label="Bitcoin" value={`${data.bitcoin} ms`} icon={Cpu} color="text-orange-400" small />
         <MetricItem label="Ethereum" value={`${data.ethereum} ms`} icon={Cpu} color="text-indigo-400" small />
         <MetricItem label="Base" value={`${data.base} ms`} icon={Cpu} color="text-blue-400" small />
         <MetricItem label="Arbitrum" value={`${data.arbitrum} ms`} icon={Cpu} color="text-cyan-400" small />
@@ -127,7 +128,7 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
 interface MetricItemProps {
   label: string;
   value: string | number | boolean;
-  icon: any;
+  icon: React.ElementType;
   color: string;
   small?: boolean;
 }

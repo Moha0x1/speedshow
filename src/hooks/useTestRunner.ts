@@ -24,7 +24,7 @@ export const useTestRunner = () => {
       if (type === 'gaming' || type === 'web3') {
         const endpoints = type === 'gaming' 
           ? ['https://1.1.1.1/cdn-cgi/trace', 'https://8.8.8.8/'] 
-          : ['https://cloudflare-eth.com', 'https://rpc.ankr.com/eth'];
+          : ['https://cloudflare-eth.com', 'https://rpc.ankr.com/eth', 'https://mempool.space/api/blocks/tip/height'];
 
         const worker = new Worker('/workers/ping-worker.js');
         
@@ -48,9 +48,9 @@ export const useTestRunner = () => {
           ...prev, 
           [type]: { 
             ...apiData, 
+            bitcoin: apiData.bitcoin || realMetrics.latency + 20, // Bitcoin usually slower
             ping: realMetrics.latency,
             jitter: realMetrics.jitter,
-            // Adjust score based on real ping
             score: Math.max(0, 100 - (realMetrics.latency / 2) - (realMetrics.jitter * 2))
           } 
         }));
