@@ -13,7 +13,7 @@ export const Footer = () => {
         </div>
         
         <p className="text-muted text-xs font-bold uppercase tracking-widest order-3 md:order-2">
-          &copy; 2026 SpeedShow.app
+          &copy; 2026 crafted with ❤️ in Barcelona
         </p>
         
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-xs font-bold uppercase tracking-widest text-muted order-2 md:order-3">

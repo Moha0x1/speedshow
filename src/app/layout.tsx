@@ -7,9 +7,39 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const DOMAIN = "https://speedshow.app";
+
 export const metadata: Metadata = {
-  title: "SpeedShow | Smart Internet Diagnostics",
-  description: "See the real performance of your internet with visual, use-case specific network tests.",
+  title: {
+    default: "SpeedShow | See the real performance of your internet",
+    template: "%s | SpeedShow"
+  },
+  description: "Advanced internet diagnostics for Gaming, Streaming, VPN, and Web3. Get precise latency, jitter, and throughput metrics in seconds.",
+  metadataBase: new URL(DOMAIN),
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: DOMAIN,
+    siteName: "SpeedShow",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "SpeedShow - Internet Diagnostics",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SpeedShow | Professional Internet Diagnostics",
+    description: "Check your real network performance for Gaming, Streaming, and Web3.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
