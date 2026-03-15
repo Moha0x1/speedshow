@@ -28,9 +28,18 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
   const handleShare = () => {
     if (activeTest && results[activeTest]) {
       const score = Math.round((results[activeTest] as {score: number}).score);
-      const text = `My ${activeTest} Score: ${score}/100 – Tested on SpeedShow.app`;
-      navigator.clipboard.writeText(text);
-      alert("Results copied to clipboard!");
+      const text = `My Internet Score: ${score}/100 — Tested on SpeedShow.app`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'SpeedShow Internet Test',
+          text: text,
+          url: window.location.href,
+        }).catch(console.error);
+      } else {
+        navigator.clipboard.writeText(text);
+        alert("Results copied to clipboard: " + text);
+      }
     }
   };
 

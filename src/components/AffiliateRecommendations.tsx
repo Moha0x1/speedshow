@@ -4,26 +4,35 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Shield, Server, Router, Zap } from "lucide-react";
 import { TestType, AffiliateRecommendation } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 interface AffiliateRecommendationsProps {
   type: TestType;
-  results: any;
+  results: any; // Keep any for flexibility across different test result shapes
 }
 
 export const AffiliateRecommendations = ({ type, results }: AffiliateRecommendationsProps) => {
   const getContent = (): AffiliateRecommendation[] => {
     switch (type) {
       case 'gaming':
-        if (results?.ping > 30 || results?.jitter > 5) {
-          return [{
-            id: 'gaming-router',
-            title: 'Optimize Your Latency',
-            description: 'Your jitter is higher than ideal. Switch to a dedicated gaming router with QoS to prioritize your traffic.',
-            buttonText: 'View Top Gaming Routers',
-            link: '#',
-            type: 'router'
-          }];
+        if (results?.ping > 50 || results?.jitter > 5) {
+          return [
+            {
+              id: 'gaming-ping-high',
+              title: 'High Ping Detected',
+              description: `Your ${results?.ping > 50 ? 'ping' : 'jitter'} is affecting your competitive edge. Consider using a gaming optimized VPN or a wired connection to stabilize your route.`,
+              buttonText: 'Best Gaming VPNs',
+              link: 'https://www.tkqlhce.com/click-101131105-13106346', // Example NordVPN link
+              type: 'vpn'
+            },
+            {
+              id: 'gaming-router',
+              title: 'Optimize Your Latency',
+              description: 'Your local network variance is high. A dedicated gaming router with SQM can prioritize your gaming packets.',
+              buttonText: 'Top Gaming Routers',
+              link: '#',
+              type: 'router'
+            }
+          ];
         }
         return [{
           id: 'gaming-vpn-low',
@@ -38,10 +47,10 @@ export const AffiliateRecommendations = ({ type, results }: AffiliateRecommendat
         if (results?.latencyImpact > 30) {
           return [{
             id: 'vpn-upgrade',
-            title: 'Latency is too high?',
-            description: 'Your current VPN is adding significant delay. These providers offer specialized high-speed protocols.',
-            buttonText: 'Top High-Speed VPNs',
-            link: '#',
+            title: `Your VPN increases latency by ${Math.round(results?.latencyImpact)}ms`,
+            description: 'This is a significant delay for gaming or real-time web. These providers offer specialized high-speed protocols like WireGuard.',
+            buttonText: 'Recommended low-latency VPNs',
+            link: 'https://www.tkqlhce.com/click-101131105-13106346',
             type: 'vpn'
           }];
         }

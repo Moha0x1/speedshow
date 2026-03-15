@@ -2,6 +2,7 @@ import React from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SpeedTestTool } from "@/components/SpeedTestTool";
+import { SEOContent } from "@/components/SEOContent";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -27,31 +28,42 @@ export default function VPNTestPage() {
 
         <SpeedTestTool initialTest="vpn" />
 
-        <section className="mt-24 space-y-12">
-          <h3 className="text-3xl font-black text-white text-center">Why test your VPN?</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="glass p-8 rounded-3xl border-cyan-400/20">
-              <h4 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-cyan-400" /> Latency Overhead
-              </h4>
-              <p className="text-muted leading-relaxed">
-                Every VPN adds some delay as data is encrypted and routed through a remote server. 
-                If your &quot;ping delta&quot; is over 50ms, your VPN might be poorly optimized or too far from 
-                your physical location.
-              </p>
+        <SpeedTestTool initialTest="vpn" />
+
+        <SEOContent 
+          title="VPN & Privacy"
+          description="A VPN (Virtual Private Network) is essential for privacy, but it inevitably adds some latency due to the encryption process and the extra distance data must travel to the VPN server. Our test measures this 'latency impact'—the difference between your normal ping and your VPN ping.\n\nWe also analyze your IP type to determine if you appear as a datacenter (common for VPNs) or residential user, which affects how websites treat your connection."
+          faqs={[
+            {
+              question: "How much latency does a VPN add?",
+              answer: "A well-optimized VPN using modern protocols like WireGuard typically adds 10-20ms if you are connected to a nearby server. Poorly routed or distant servers can add over 100ms."
+            },
+            {
+              question: "Does a VPN hide my real IP address?",
+              answer: "Yes, a VPN replaces your IP with the IP of the VPN server. However, some websites can still detect you are using a VPN if the IP is flagged as belonging to a datacenter."
+            },
+            {
+              question: "Can a VPN improve my internet speed?",
+              answer: "Generally no, but it can help if your ISP is specifically throttling certain types of traffic (like streaming) or has poor routing to specific servers."
+            }
+          ]}
+          additionalContent={
+            <div className="space-y-6">
+              <div className="glass p-6 rounded-2xl border-cyan-400/10">
+                <h4 className="text-xl font-bold text-white mb-2">Latency Overhead</h4>
+                <p className="text-muted text-sm leading-relaxed">
+                  If your &quot;ping delta&quot; is over 50ms, your VPN might be poorly optimized or too far from your physical location.
+                </p>
+              </div>
+              <div className="glass p-6 rounded-2xl border-cyan-400/10">
+                <h4 className="text-xl font-bold text-white mb-2">IP Type Leaks</h4>
+                <p className="text-muted text-sm leading-relaxed">
+                  We analyze your IP footprint to see if you appear as a Residential user or a tracked VPN server.
+                </p>
+              </div>
             </div>
-            <div className="glass p-8 rounded-3xl border-cyan-400/20">
-              <h4 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-cyan-400" /> IP Type Leaks
-              </h4>
-              <p className="text-muted leading-relaxed">
-                Websites can often tell if you&apos;re using a VPN by checking if your IP belongs to a 
-                Datacenter. We analyze your IP footprint to see if you appear as a Residential 
-                user or a tracked VPN server.
-              </p>
-            </div>
-          </div>
-        </section>
+          }
+        />
       </main>
 
       <Footer />

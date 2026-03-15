@@ -9,6 +9,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/streaming-speed-test',
     '/vpn-performance-test',
     '/web3-latency-test',
+    '/ping-test',
+    '/jitter-test',
+    '/packet-loss-test',
+    '/internet-speed-test',
+    '/latency-test',
     '/privacy',
   ];
 

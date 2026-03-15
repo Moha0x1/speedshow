@@ -2,6 +2,7 @@ import React from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SpeedTestTool } from "@/components/SpeedTestTool";
+import { SEOContent } from "@/components/SEOContent";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -27,24 +28,40 @@ export default function GamingTestPage() {
 
         <SpeedTestTool initialTest="gaming" />
 
-        <section className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-white/5 pt-16">
-          <div className="glass p-8 rounded-3xl">
-            <h3 className="text-2xl font-bold text-white mb-4">What is Jitter?</h3>
-            <p className="text-muted font-medium leading-relaxed">
-              Jitter is the variance in time delay between data packets over a network. High jitter causes 
-              &quot;teleporting&quot; or &quot;rubber-banding&quot; in games like CS2, Valorant, or League of Legends. 
-              Ideally, your jitter should be under 5ms.
-            </p>
-          </div>
-          <div className="glass p-8 rounded-3xl">
-            <h3 className="text-2xl font-bold text-white mb-4">Packet Loss Explained</h3>
-            <p className="text-muted font-medium leading-relaxed">
-              Packet loss occurs when data packets fail to reach their destination. Even 1% packet loss 
-              can cause noticeable stutters and missed shots in fast-paced games. This is usually 
-              caused by network congestion or faulty hardware.
-            </p>
-          </div>
-        </section>
+        <SEOContent 
+          title="Gaming Performance"
+          description="Competitive gaming requires more than just high download speeds. It demands low latency (ping), minimal jitter, and zero packet loss. Even the fastest internet connection can be poor for gaming if these metrics are unstable.\n\nOur gaming test measures these critical KPIs by simulating real-world game server interactions across multiple global regions."
+          faqs={[
+            {
+              question: "What is the most important metric for gaming?",
+              answer: "Ping (latency) is usually the most important. However, high jitter or packet loss can be even more disruptive, causing 'teleporting' or disconnected sessions."
+            },
+            {
+              question: "How do I improve my gaming ping?",
+              answer: "Use an Ethernet cable instead of Wi-Fi, close background downloads, and ensure your router's QoS settings prioritize gaming traffic."
+            },
+            {
+              question: "Does a VPN help with gaming lag?",
+              answer: "Sometimes. If your ISP has poor routing to game servers, a specialized gaming VPN can provide a more direct path, potentially lowering your ping."
+            }
+          ]}
+          additionalContent={
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">What is Jitter?</h3>
+                <p className="text-muted text-sm font-medium leading-relaxed">
+                  Jitter is the variance in time delay between data packets. High jitter causes &quot;rubber-banding&quot; in games like CS2, Valorant, or League of Legends. Ideally, keep it under 5ms.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">Packet Loss Explained</h3>
+                <p className="text-muted text-sm font-medium leading-relaxed">
+                  Packet loss happens when data fails to reach its destination. Even 1% loss can cause noticeable stutters and missed shots in fast-paced games.
+                </p>
+              </div>
+            </div>
+          }
+        />
       </main>
 
       <Footer />

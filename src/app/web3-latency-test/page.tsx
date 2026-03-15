@@ -2,6 +2,7 @@ import React from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SpeedTestTool } from "@/components/SpeedTestTool";
+import { SEOContent } from "@/components/SEOContent";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -27,23 +28,41 @@ export default function Web3TestPage() {
 
         <SpeedTestTool initialTest="web3" />
 
-        <section className="mt-24">
-          <div className="glass p-12 rounded-[3rem] border-orange-400/20 flex flex-col items-center text-center">
-            <h3 className="text-3xl font-black text-white mb-6">Master the Mempool</h3>
-            <p className="text-muted text-lg max-w-2xl mb-10 leading-relaxed font-medium">
-              High RPC latency can lead to failed transactions or getting front-run by bots. 
-              By measuring the response time of nodes on Base, Solana, and Ethereum, 
-              you can ensure your dApp connection is as fast as possible.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              {['Ethereum', 'Base', 'Solana', 'Arbitrum', 'Polygon'].map(net => (
-                <span key={net} className="px-5 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-bold text-muted">
-                  {net}
-                </span>
-              ))}
+        <SpeedTestTool initialTest="web3" />
+
+        <SEOContent 
+          title="Web3 RPC Latency"
+          description="In the world of DeFi, NFTs, and high-frequency crypto trading, milliseconds are the difference between a successful trade and a front-run failure. RPC (Remote Procedure Call) latency measures how long it takes for your request to reach a blockchain node and get a response.\n\nLower RPC latency ensures your transactions hit the mempool faster, giving you a competitive edge on networks like Solana, Base, and Ethereum."
+          faqs={[
+            {
+              question: "Why does RPC latency matter for trading?",
+              answer: "High RPC latency can lead to failed transactions or getting front-run by bots. The faster your connection to the node, the more likely your transaction will be included in the next block."
+            },
+            {
+              question: "How can I lower my Web3 latency?",
+              answer: "Use premium RPC providers (like Ankr or Alchemy), choose nodes geographically close to you, or use a high-speed fiber connection instead of Wi-Fi."
+            },
+            {
+              question: "What is a good RPC ping?",
+              answer: "For professional trading, sub-50ms is excellent. Anything above 200ms is considered slow and may cause issues with real-time dApp interactions."
+            }
+          ]}
+          additionalContent={
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-white mb-6">Supported Networks</h3>
+              <div className="flex flex-wrap gap-3">
+                {['Ethereum', 'Base', 'Solana', 'Arbitrum', 'Polygon', 'Bitcoin'].map(net => (
+                  <span key={net} className="px-5 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-bold text-muted">
+                    {net}
+                  </span>
+                ))}
+              </div>
+              <p className="text-muted text-sm font-medium leading-relaxed mt-4">
+                We measure response times across major Layer 1 and Layer 2 networks to ensure your trading setup is optimized.
+              </p>
             </div>
-          </div>
-        </section>
+          }
+        />
       </main>
 
       <Footer />

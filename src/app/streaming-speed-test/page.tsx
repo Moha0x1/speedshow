@@ -2,6 +2,7 @@ import React from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SpeedTestTool } from "@/components/SpeedTestTool";
+import { SEOContent } from "@/components/SEOContent";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -27,27 +28,43 @@ export default function StreamingTestPage() {
 
         <SpeedTestTool initialTest="streaming" />
 
-        <section className="mt-24 glass p-10 rounded-[2.5rem] border-secondary/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 blur-[100px] -z-10" />
-          <h3 className="text-2xl font-bold text-white mb-6">Streaming Speed Requirements</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 border border-white/5 rounded-2xl bg-white/[0.02]">
-              <div className="text-secondary font-bold text-xl mb-2">1080p HD</div>
-              <div className="text-3xl font-black text-white mb-2">5 Mbps</div>
-              <p className="text-muted text-sm">Consistent speed required for standard high-def streaming.</p>
+        <SEOContent 
+          title="Streaming Quality"
+          description="Streaming high-quality video content requires a consistent and fast download speed. While standard HD may work on 5 Mbps, 4K Ultra HD demands at least 25 Mbps per device. Beyond speed, connection stability is key to preventing mid-movie buffering."
+          faqs={[
+            {
+              question: "How much speed do I need for Netflix 4K?",
+              answer: "Netflix recommends at least 15 Mbps for 4K streaming, but 25 Mbps is safer for consistent quality and to account for other devices on your network."
+            },
+            {
+              question: "Why does my video keep buffering even with fast internet?",
+              answer: "Buffering can be caused by high jitter, server congestion, or weak Wi-Fi signal. Even if your peak speed is high, instability can drop the connection intermittently."
+            },
+            {
+              question: "Does using a VPN affect streaming quality?",
+              answer: "It can. A VPN adds encryption overhead. However, if your ISP throttles streaming traffic, a VPN might actually improve your speeds by hiding your activity."
+            }
+          ]}
+          additionalContent={
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-white mb-6">Speed Requirements</h3>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center justify-between p-4 glass rounded-xl border-white/5">
+                  <span className="text-secondary font-bold">1080p HD</span>
+                  <span className="text-white font-black">5 Mbps</span>
+                </div>
+                <div className="flex items-center justify-between p-4 glass rounded-xl border-white/5">
+                  <span className="text-purple-400 font-bold">4K Ultra HD</span>
+                  <span className="text-white font-black">25 Mbps</span>
+                </div>
+                <div className="flex items-center justify-between p-4 glass rounded-xl border-primary/20 bg-primary/5">
+                  <span className="text-primary font-bold">8K / Multi-Stream</span>
+                  <span className="text-white font-black">100+ Mbps</span>
+                </div>
+              </div>
             </div>
-            <div className="p-6 border border-white/5 rounded-2xl bg-white/[0.02]">
-              <div className="text-purple-400 font-bold text-xl mb-2">4K Ultra HD</div>
-              <div className="text-3xl font-black text-white mb-2">25 Mbps</div>
-              <p className="text-muted text-sm">Recommended for stable 4K playback on platforms like Netflix.</p>
-            </div>
-            <div className="p-6 border border-white/10 rounded-2xl bg-primary/10">
-              <div className="text-primary font-bold text-xl mb-2">Multi-Stream 8K</div>
-              <div className="text-3xl font-black text-white mb-2">100+ Mbps</div>
-              <p className="text-muted text-sm">Future-proof speed for 8K video and multiple concurrent users.</p>
-            </div>
-          </div>
-        </section>
+          }
+        />
       </main>
 
       <Footer />
