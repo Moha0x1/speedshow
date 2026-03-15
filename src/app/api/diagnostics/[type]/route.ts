@@ -83,6 +83,7 @@ export async function GET(
       results = {
         ethereum: Math.floor(Math.random() * 50) + 40,
         base: Math.floor(Math.random() * 30) + 20,
+        arbitrum: Math.floor(Math.random() * 35) + 25,
         solana: Math.floor(Math.random() * 40) + 30,
         score: 85 + Math.random() * 12
       };
