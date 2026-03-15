@@ -6,6 +6,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Statement | SpeedShow",
   description: "Learn how SpeedShow.app handles your data and protects your privacy during network diagnostics.",
+  alternates: { canonical: '/privacy' }
 };
 
 export default function PrivacyPage() {

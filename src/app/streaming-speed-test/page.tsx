@@ -5,8 +5,9 @@ import { SpeedTestTool } from "@/components/SpeedTestTool";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Streaming Speed Test | SpeedShow",
-  description: "Verify your connection for 4K and 8K streaming. Check stability and download speeds for Netflix, YouTube, and Twitch.",
+  title: "Streaming Quality Test | 4K & 8K Buffer Diagnostic",
+  description: "Measure sustained download speeds and connection stability for 4K and 8K streaming. Ensure zero buffering on Netflix, YouTube, and Twitch.",
+  alternates: { canonical: '/streaming-speed-test' }
 };
 
 export default function StreamingTestPage() {

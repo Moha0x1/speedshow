@@ -14,8 +14,22 @@ export const metadata: Metadata = {
     default: "SpeedShow | See the real performance of your internet",
     template: "%s | SpeedShow"
   },
-  description: "Advanced internet diagnostics for Gaming, Streaming, VPN, and Web3. Get precise latency, jitter, and throughput metrics in seconds.",
+  description: "Advanced internet diagnostics for Gaming, Streaming, VPN, and Web3. Get precise latency, jitter, and throughput metrics in seconds. Best ping test for competitive gamers and DeFi traders.",
+  keywords: ["speed test", "ping test", "gaming speed", "jitter test", "web3 latency", "rpc ping", "vpn speed test", "network diagnostics", "internet speed"],
+  authors: [{ name: "SpeedShow Team" }],
+  creator: "SpeedShow",
+  publisher: "SpeedShow",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   metadataBase: new URL(DOMAIN),
+  alternates: {
+    canonical: '/',
+  },
+  manifest: '/manifest.json',
+  category: 'technology',
   icons: {
     icon: "/favicon.png",
     apple: "/apple-touch-icon.png",

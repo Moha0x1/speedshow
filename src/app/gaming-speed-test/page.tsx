@@ -5,8 +5,9 @@ import { SpeedTestTool } from "@/components/SpeedTestTool";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Gaming Speed Test | SpeedShow",
-  description: "Check your ping, jitter, and packet loss. Optimize your network for competitive gaming with professional diagnostics.",
+  title: "Gaming Speed Test | Best Ping & Jitter for Pro Gamers",
+  description: "Test your internet for competitive gaming. Precise ping, jitter, and packet loss metrics to optimize your connection for Valorant, CS2, League of Legends and more.",
+  alternates: { canonical: '/gaming-speed-test' }
 };
 
 export default function GamingTestPage() {

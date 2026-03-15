@@ -5,8 +5,9 @@ import { SpeedTestTool } from "@/components/SpeedTestTool";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Web3 Node Latency Test | SpeedShow",
-  description: "Check RPC response times for Ethereum, Base, and Solana. Ensure your wallet and dApps are connected to the fastest available nodes.",
+  title: "Web3 RPC Latency | Crypto Trader Network Diagnostic",
+  description: "Ping Ethereum, Solana, and Bitcoin RPC nodes. Milliseconds matter in DeFi and NFT trading - find your fastest connection now.",
+  alternates: { canonical: '/web3-latency-test' }
 };
 
 export default function Web3TestPage() {

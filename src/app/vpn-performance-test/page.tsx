@@ -5,8 +5,9 @@ import { SpeedTestTool } from "@/components/SpeedTestTool";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "VPN Performance Test | SpeedShow",
-  description: "Detect VPN usage and measure latency impact. Find out if your VPN is slowing you down and discover faster alternatives.",
+  title: "VPN & Privacy Test | Measure Encryption Overhead",
+  description: "Detect VPNs and measure the latency impact of your encryption layers. Precision tool for privacy-conscious users and remote workers.",
+  alternates: { canonical: '/vpn-performance-test' }
 };
 
 export default function VPNTestPage() {
