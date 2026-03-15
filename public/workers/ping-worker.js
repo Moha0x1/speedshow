@@ -27,9 +27,9 @@ self.onmessage = async (e) => {
     }
 
     // Calculate metrics
-    const avgPing = results.reduce((a, b) => a + b, 0) / results.length;
+    const avgPing = results.length > 0 ? (results.reduce((a, b) => a + b, 0) / results.length) : 0;
     const sorted = [...results].sort((a, b) => a - b);
-    const minPing = sorted[0];
+    const minPing = results.length > 0 ? sorted[0] : 0;
     const jitter = results.length > 1 
       ? results.slice(1).reduce((acc, current, idx) => acc + Math.abs(current - results[idx]), 0) / (results.length - 1)
       : 0;
