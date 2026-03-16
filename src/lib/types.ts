@@ -1,9 +1,11 @@
-export type TestType = 'gaming' | 'streaming' | 'vpn' | 'web3';
+export type TestType = 'gaming' | 'streaming' | 'vpn' | 'web3' | 'ping-test' | 'jitter-test' | 'packet-loss-test' | 'latency-test' | 'internet-speed-test';
 
 export interface GamingResults {
   ping: number;
   jitter: number;
   packetLoss: number;
+  minLatency?: number;
+  maxLatency?: number;
   score: number;
 }
 

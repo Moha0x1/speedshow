@@ -25,12 +25,17 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
   const renderGamingResults = (data: GamingResults) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
       <ScoreGauge score={data.score} label="Gaming Score" />
-      <div className="space-y-6">
-        <MetricItem label="Ping" value={`${data.ping} ms`} icon={Activity} color="text-blue-400" />
-        <MetricItem label="Jitter" value={`${data.jitter} ms`} icon={Activity} color="text-purple-400" />
-        <MetricItem label="Packet Loss" value={`${data.packetLoss}%`} icon={Activity} color="text-cyan-400" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <MetricItem label="Avg Ping" value={`${data.ping} ms`} icon={Activity} color="text-blue-400" />
+          <MetricItem label="Jitter" value={`${data.jitter} ms`} icon={Activity} color="text-purple-400" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <MetricItem label="Min/Max" value={`${data.minLatency || data.ping}/${data.maxLatency || data.ping} ms`} icon={Activity} color="text-cyan-400" small />
+          <MetricItem label="Loss" value={`${data.packetLoss}%`} icon={Activity} color="text-red-400" small />
+        </div>
         
-        <div className="h-24 w-full glass rounded-xl p-2">
+        <div className="h-24 w-full glass rounded-xl p-2 mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={mockChartData}>
               <Line type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={2} dot={false} />
