@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-export function middleware() {
+// Next.js 16.1.6 Proxy (formerly Middleware)
+export function proxy() {
   const response = NextResponse.next();
 
   // Security Headers

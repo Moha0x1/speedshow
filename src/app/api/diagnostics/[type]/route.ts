@@ -2,28 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-// Basic in-memory rate limiting (simulated for demonstration)
-// In production, use Vercel KV or similar
-const rateLimit = new Map<string, number>();
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
   const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
-  const now = Date.now();
-  const lastTest = rateLimit.get(ip) || 0;
-
-  // Limit to 1 test every 5 seconds per IP
-  if (now - lastTest < 5000) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait a few seconds." },
-      { status: 429 }
-    );
-  }
-
-  rateLimit.set(ip, now);
-
+  
   const { type } = await params;
   let results: Record<string, string | number | boolean | object> = {};
   
