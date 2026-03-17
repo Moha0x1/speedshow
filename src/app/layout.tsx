@@ -8,9 +8,11 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const DOMAIN = "https://speedshow.app";
-
+const DOMAIN = "https://speedshow.vercel.app";
 export const metadata: Metadata = {
+  verification: {
+    google: "z3bzwH4eVkRM4Tc1Aap92_dVcHuMy7vevk8QFTNtAK4",
+  },
   title: {
     default: "SpeedShow | See the real performance of your internet",
     template: "%s | SpeedShow"
