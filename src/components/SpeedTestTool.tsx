@@ -113,6 +113,7 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-left">
               {(() => {
                 const latestResult = Object.values(results)[Object.values(results).length - 1];
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const conn = (latestResult as any)?.connectionInfo || {
                   isp: "Cloudflare",
                   location: "New York, US",
@@ -161,6 +162,7 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
               key={activeTest}
               type={activeTest}
               isTesting={isTesting}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               results={results[activeTest] as any}
               onShare={handleShare}
             />

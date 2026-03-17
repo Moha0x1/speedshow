@@ -3,14 +3,16 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Shield, Server, Router, Zap } from "lucide-react";
-import { TestType, AffiliateRecommendation } from "@/lib/types";
+import { TestType, AffiliateRecommendation, AnyResult } from "@/lib/types";
 
 interface AffiliateRecommendationsProps {
   type: TestType;
-  results: any; // Keep any for flexibility across different test result shapes
+  results: AnyResult; 
 }
 
-export const AffiliateRecommendations = ({ type, results }: AffiliateRecommendationsProps) => {
+export const AffiliateRecommendations = ({ type, results: rawResults }: AffiliateRecommendationsProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const results = rawResults as any;
   const getContent = (): AffiliateRecommendation[] => {
     switch (type) {
       case 'gaming':

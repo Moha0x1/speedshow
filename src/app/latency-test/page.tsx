@@ -52,7 +52,7 @@ export default function LatencyTestPage() {
               <h3 className="text-2xl font-bold text-white mb-4">How to reduce latency</h3>
               <p className="text-muted font-medium mb-4">
                 Reducing latency starts with local optimization. Ensure your network is not congested 
-                and that your ISP's routing is direct.
+                and that your ISP&apos;s routing is direct.
               </p>
               <ul className="text-muted font-medium list-disc ml-4 space-y-2">
                 <li>Optimize router settings for QoS (Quality of Service)</li>

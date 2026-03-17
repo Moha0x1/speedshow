@@ -53,7 +53,7 @@ export default function PingTestPage() {
               <ul className="text-muted font-medium list-disc ml-4 space-y-2">
                 <li>Switch to a wired Ethernet connection</li>
                 <li>Close high-bandwidth background applications</li>
-                <li>Ensure your network router's firmware is up-to-date</li>
+                <li>Ensure your network router&apos;s firmware is up-to-date</li>
                 <li>Connect to gaming servers closest to your physical location</li>
                 <li>Use a specialized gaming VPN like ExitLag</li>
               </ul>

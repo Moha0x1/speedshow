@@ -24,14 +24,16 @@ export const useTestRunner = () => {
       const isThroughputTest = ['streaming', 'internet-speed-test'].includes(type);
       const isWeb3Test = type === 'web3';
 
-      let realMetrics: any = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let realMetrics: Record<string, any> = {};
 
       // 2. Latency / Ping Measurement
       if (isLatencyTest || isThroughputTest) {
         const endpoints = ['https://1.1.1.1/cdn-cgi/trace', 'https://8.8.8.8/', 'https://www.google.com/generate_204'];
         const pingWorker = new Worker('/workers/ping-worker.js');
         
-        const latencyData = await new Promise<any>((resolve) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const latencyData = await new Promise<Record<string, any>>((resolve) => {
           pingWorker.onmessage = (e) => {
             if (e.data.type === 'PINGS_COMPLETE') {
               pingWorker.terminate();
@@ -46,7 +48,8 @@ export const useTestRunner = () => {
       // 3. Throughput / Download Measurement
       if (isThroughputTest) {
         const speedWorker = new Worker('/workers/speed-worker.js');
-        const speedData = await new Promise<any>((resolve) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const speedData = await new Promise<Record<string, any>>((resolve) => {
           speedWorker.onmessage = (e) => {
             if (e.data.type === 'DOWNLOAD_COMPLETE') {
               speedWorker.terminate();
@@ -83,7 +86,7 @@ export const useTestRunner = () => {
               await provider.getBlockNumber();
             }
             realMetrics[net.name] = Math.round(performance.now() - start);
-          } catch (err) {
+          } catch {
             realMetrics[net.name] = 999;
           }
         }

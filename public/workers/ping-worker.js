@@ -24,7 +24,7 @@ self.onmessage = async (e) => {
         const end = performance.now();
         results.push(end - start);
         successfulSamples++;
-      } catch (err) {
+      } catch {
         // Sample failed, count as packet loss later
       }
       

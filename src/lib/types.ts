@@ -42,6 +42,18 @@ export interface AffiliateRecommendation {
   type: 'vpn' | 'router' | 'isp' | 'hosting';
 }
 
+export interface ConnectionInfo {
+  isp: string;
+  location: string;
+  type: string;
+  status: string;
+}
+
+export type AnyResult = (GamingResults | StreamingResults | VPNResults | Web3Results) & {
+  connectionInfo?: ConnectionInfo;
+  [key: string]: unknown;
+};
+
 export interface AllResults {
   gaming?: GamingResults;
   streaming?: StreamingResults;
