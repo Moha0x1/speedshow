@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Next.js 16.1.6 Proxy (formerly Middleware)
-export function proxy() {
+export function proxy(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Security Headers
@@ -19,3 +19,5 @@ export function proxy() {
 export const config = {
   matcher: '/:path*',
 };
+
+export default proxy;
