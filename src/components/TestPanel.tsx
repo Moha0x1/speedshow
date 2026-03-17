@@ -119,7 +119,7 @@ export const TestPanel = ({ type, results, isTesting, onShare }: TestPanelProps)
               
               {!isTesting && results && (
                 <div className="mt-8 pt-8 border-t border-white/5">
-                  <AffiliateRecommendations type={type} results={results} />
+                  <AffiliateRecommendations type={type} results={results as any} />
                 </div>
               )}
             </>
