@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://speedshow.app';
+  const baseUrl = 'https://speedshow.vercel.app';
   
   const routes = [
     '',
