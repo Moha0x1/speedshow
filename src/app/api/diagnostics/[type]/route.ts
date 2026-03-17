@@ -36,6 +36,25 @@ export async function GET(
     console.error("IP info fetch failed", e);
   }
 
+  // Enhanced detection logic
+  const ispLower = connectionInfo.isp.toLowerCase();
+  const isDatacenter = 
+    ispLower.includes('hosting') || 
+    ispLower.includes('vpn') || 
+    ispLower.includes('proxy') || 
+    ispLower.includes('server') || 
+    ispLower.includes('datacenter') || 
+    ispLower.includes('cloud') ||
+    ispLower.includes('m247') || 
+    ispLower.includes('packet exchange') || 
+    ispLower.includes('digitalocean') || 
+    ispLower.includes('ovh') || 
+    ispLower.includes('hetzner') || 
+    ispLower.includes('linode') || 
+    ispLower.includes('amazon') || 
+    ispLower.includes('google') || 
+    ispLower.includes('microsoft');
+
   // Realistic results based on connection
   switch (type) {
     case 'gaming':
@@ -56,11 +75,11 @@ export async function GET(
       break;
     case 'vpn':
       results = {
-        vpnDetected: false,
-        proxyUsage: false,
-        ipType: connectionInfo.isp.toLowerCase().includes('hosting') ? 'Datacenter' : 'Residential',
-        latencyImpact: Math.floor(Math.random() * 5),
-        score: 96 + Math.random() * 4
+        vpnDetected: isDatacenter,
+        proxyUsage: isDatacenter,
+        ipType: isDatacenter ? 'Datacenter' : 'Residential',
+        latencyImpact: isDatacenter ? Math.floor(Math.random() * 20) + 10 : Math.floor(Math.random() * 5),
+        score: isDatacenter ? 70 + Math.random() * 15 : 96 + Math.random() * 4
       };
       break;
     case 'web3':
