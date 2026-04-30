@@ -6,13 +6,16 @@ export interface GamingResults {
   packetLoss: number;
   minLatency?: number;
   maxLatency?: number;
+  bufferbloat?: number;
   score: number;
 }
 
 export interface StreamingResults {
   downloadSpeed: number;
+  uploadSpeed?: number;
   stability: 'Low' | 'Medium' | 'High';
   bufferRisk: 'Low' | 'Medium' | 'High';
+  bufferbloat?: number;
   score: number;
 }
 
@@ -60,4 +63,24 @@ export interface AllResults {
   vpn?: VPNResults;
   web3?: Web3Results;
   globalScore?: number;
+}
+
+export type QualityGrade = 'Excellent' | 'Good' | 'Fair' | 'Poor';
+
+export interface TestProgress {
+  phase: 'idle' | 'connecting' | 'ping' | 'download' | 'upload' | 'complete';
+  percent: number;
+  currentPing?: number;
+  currentDownload?: number;
+  currentUpload?: number;
+  pingHistory: number[];
+  logs: string[];
+}
+
+export interface TestHistoryEntry {
+  id: string;
+  timestamp: number;
+  type: TestType;
+  score: number;
+  metrics: AnyResult;
 }

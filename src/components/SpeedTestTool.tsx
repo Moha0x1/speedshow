@@ -3,6 +3,7 @@
 import React from "react";
 import { TestCard } from "@/components/TestCard";
 import { TestPanel } from "@/components/TestPanel";
+import { TestHistoryList } from "@/components/TestHistoryList";
 import { useTestRunner } from "@/hooks/useTestRunner";
 import { Gamepad2, PlaySquare, ShieldCheck, Network } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +17,7 @@ interface SpeedTestToolProps {
 }
 
 export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToolProps) => {
-  const { activeTest, isTesting, results, runTest } = useTestRunner();
+  const { activeTest, isTesting, progress, results, runTest } = useTestRunner();
 
   // Initialize with specific test if provided
   React.useEffect(() => {
@@ -162,6 +163,7 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
               key={activeTest}
               type={activeTest}
               isTesting={isTesting}
+              progress={progress}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               results={results[activeTest] as any}
               onShare={handleShare}
@@ -180,6 +182,11 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
           </div>
         )}
       </AnimatePresence>
+
+      {/* History Panel */}
+      <div className="mt-8">
+        <TestHistoryList />
+      </div>
     </div>
   );
 };

@@ -6,7 +6,7 @@ self.onmessage = async (e) => {
 
   if (type === 'START_PINGS') {
     const results = [];
-    const totalSamples = 30;
+    const totalSamples = 40;
     let successfulSamples = 0;
     
     for (let i = 0; i < totalSamples; i++) {
@@ -31,12 +31,14 @@ self.onmessage = async (e) => {
       // Small randomized delay to simulate real-world traffic intervals
       await new Promise(r => setTimeout(r, 50 + Math.random() * 50));
       
+      const runningAvg = results.length > 0 ? results.reduce((a, b) => a + b, 0) / results.length : null;
+
       // Post progress updates for UI smoothness
       self.postMessage({ 
         type: 'PING_PROGRESS', 
         current: i + 1, 
         total: totalSamples,
-        latestPing: results[results.length - 1] || null
+        latestPing: runningAvg ? Math.round(runningAvg) : null
       });
     }
 
