@@ -12,20 +12,24 @@ self.onmessage = async (e) => {
     for (let i = 0; i < totalSamples; i++) {
       const start = performance.now();
       try {
-        // Use a lightweight check to measure round-trip time (RTT)
-        // cache: 'no-store' is critical to avoid hitting local cache
+        // Use a short timeout to detect packet loss/unresponsive endpoints
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        
         await fetch(endpoints[i % endpoints.length], { 
           mode: 'no-cors', 
           cache: 'no-store',
-          priority: 'high',
-          // Use a short timeout to detect packet loss/unresponsive endpoints
-          signal: AbortSignal.timeout(2000) 
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
         const end = performance.now();
         results.push(end - start);
         successfulSamples++;
-      } catch {
+      } catch (err) {
         // Sample failed, count as packet loss later
+        console.error("Ping sample failed:", err);
       }
       
       // Small randomized delay to simulate real-world traffic intervals

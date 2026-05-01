@@ -67,7 +67,7 @@ export const useTestRunner = () => {
       if (isLatencyTest || isThroughputTest || type === 'vpn') {
         setProgress(p => ({ ...p, phase: 'ping', percent: 0 }));
         addLog(`Starting latency test with ${type}...`);
-        const endpoints = ['https://1.1.1.1/cdn-cgi/trace', 'https://8.8.8.8/', 'https://www.google.com/generate_204'];
+        const endpoints = ['https://1.1.1.1/cdn-cgi/trace', 'https://speed.cloudflare.com/cdn-cgi/trace', 'https://cp.cloudflare.com/generate_204'];
         const pingWorker = new Worker('/workers/ping-worker.js');
         
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
