@@ -4,24 +4,47 @@ import { useState, useCallback } from "react";
 import { TestType, TestProgress } from "@/lib/types";
 import { useTestHistory } from "@/hooks/useTestHistory";
 
-async function checkWebRTCLeak(): Promise<string[]> {
+async function checkWebRTCLeak(httpIp: string): Promise<{ leaks: string[], details: string }> {
   return new Promise((resolve) => {
-    const ips = new Set<string>();
+    const hostIps = new Set<string>();
+    const srflxIps = new Set<string>();
+    const relayIps = new Set<string>();
+    
     try {
       const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
       pc.createDataChannel("");
       pc.createOffer().then((offer) => pc.setLocalDescription(offer));
+      
+      const finalize = () => {
+        const leaks: string[] = [];
+        Array.from(srflxIps).forEach(ip => {
+          if (ip !== httpIp) leaks.push(ip);
+        });
+        resolve({ 
+          leaks, 
+          details: `Host: ${hostIps.size}, Srflx: ${srflxIps.size}, Relay: ${relayIps.size}` 
+        });
+      };
+
       pc.onicecandidate = (event) => {
         if (!event || !event.candidate) {
-          resolve(Array.from(ips));
+          finalize();
           return;
         }
-        const ipMatch = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(event.candidate.candidate);
-        if (ipMatch) ips.add(ipMatch[1]);
+        
+        const candidate = event.candidate;
+        const ipMatch = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(candidate.candidate);
+        if (ipMatch) {
+          const ip = ipMatch[1];
+          if (candidate.type === 'host') hostIps.add(ip);
+          else if (candidate.type === 'srflx') srflxIps.add(ip);
+          else if (candidate.type === 'relay') relayIps.add(ip);
+        }
       };
-      setTimeout(() => resolve(Array.from(ips)), 2000);
+      
+      setTimeout(finalize, 3000);
     } catch {
-      resolve([]);
+      resolve({ leaks: [], details: "Error" });
     }
   });
 }
@@ -99,20 +122,38 @@ export const useTestRunner = () => {
 
       // 3. Throughput / Download Measurement
       let activePingSpikes: number[] = [];
+      let wsBufferbloat: WebSocket | null = null;
+      let bufferbloatInterval: NodeJS.Timeout | null = null;
 
-      const runActivePing = async () => {
-        const start = performance.now();
+      const startBufferbloatPing = () => {
         try {
-          await fetch('https://1.1.1.1/cdn-cgi/trace', { mode: 'no-cors', cache: 'no-store' });
-          activePingSpikes.push(performance.now() - start);
+          wsBufferbloat = new WebSocket('wss://ws.postman-echo.com/raw');
+          wsBufferbloat.onopen = () => {
+            bufferbloatInterval = setInterval(() => {
+              if (wsBufferbloat?.readyState === WebSocket.OPEN) {
+                wsBufferbloat.send(performance.now().toString());
+              }
+            }, 250);
+          };
+          wsBufferbloat.onmessage = (event) => {
+            const sendTime = parseFloat(event.data);
+            if (!isNaN(sendTime)) {
+              activePingSpikes.push(performance.now() - sendTime);
+            }
+          };
         } catch { /* ignore */ }
+      };
+
+      const stopBufferbloatPing = () => {
+        if (bufferbloatInterval) clearInterval(bufferbloatInterval);
+        if (wsBufferbloat) wsBufferbloat.close();
       };
 
       if (isThroughputTest) {
         setProgress(p => ({ ...p, phase: 'download', percent: 0, currentDownload: 0 }));
-        addLog(`Initiating multi-stream download (500MB payload, 4 streams)...`);
+        addLog(`Initiating multi-stream download (8MB chunks, 4 streams)...`);
         
-        let pingInterval = setInterval(runActivePing, 500);
+        startBufferbloatPing();
 
         const speedWorker = new Worker('/workers/speed-worker.js');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,11 +176,11 @@ export const useTestRunner = () => {
               resolve(e.data.metrics);
             }
           };
-          // Request a massive file for sustained gigabit measurement
-          speedWorker.postMessage({ type: 'START_DOWNLOAD', url: 'https://speed.cloudflare.com/__down?bytes=500000000', streams: 4 });
+          // Request download chunks for LibreSpeed protocol test
+          speedWorker.postMessage({ type: 'START_DOWNLOAD', url: 'https://speed.cloudflare.com/__down', streams: 4 });
         });
         
-        clearInterval(pingInterval);
+        stopBufferbloatPing();
         realMetrics.downloadSpeed = speedData.speedMbps;
         addLog(`Download complete: ${speedData.speedMbps} Mbps. Bytes transferred: ${(speedData.totalBytes / 1e6).toFixed(2)} MB`);
 
@@ -147,7 +188,7 @@ export const useTestRunner = () => {
         setProgress(p => ({ ...p, phase: 'upload', percent: 0, currentUpload: 0 }));
         addLog(`Initiating multi-stream upload (incompressible data, 4 streams)...`);
         
-        pingInterval = setInterval(runActivePing, 500);
+        startBufferbloatPing();
         
         const uploadWorker = new Worker('/workers/upload-worker.js');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -173,17 +214,26 @@ export const useTestRunner = () => {
           uploadWorker.postMessage({ type: 'START_UPLOAD', url: 'https://speed.cloudflare.com/__up', streams: 4 });
         });
         
-        clearInterval(pingInterval);
+        stopBufferbloatPing();
         realMetrics.uploadSpeed = uploadData.speedMbps;
         addLog(`Upload complete: ${uploadData.speedMbps} Mbps. Bytes transferred: ${(uploadData.totalBytes / 1e6).toFixed(2)} MB`);
 
         // Calculate Bufferbloat
         if (activePingSpikes.length > 0 && realMetrics.latency) {
           const avgActivePing = activePingSpikes.reduce((a, b) => a + b, 0) / activePingSpikes.length;
-          realMetrics.bufferbloat = Math.max(0, Math.round(avgActivePing - realMetrics.latency));
-          addLog(`Bufferbloat (Load Latency Increase): +${realMetrics.bufferbloat}ms`);
+          const increase = Math.max(0, Math.round(avgActivePing - realMetrics.latency));
+          
+          let grade = 'A';
+          if (increase >= 100) grade = 'D';
+          else if (increase >= 30) grade = 'C';
+          else if (increase >= 5) grade = 'B';
+          
+          realMetrics.bufferbloat = increase;
+          realMetrics.bufferRisk = grade; // Used by Streaming Results component
+          addLog(`Bufferbloat: +${increase}ms (Grade ${grade})`);
         } else {
           realMetrics.bufferbloat = 0;
+          realMetrics.bufferRisk = 'A';
         }
       }
 
@@ -239,10 +289,11 @@ export const useTestRunner = () => {
       } else if (type === 'vpn') {
         setProgress(p => ({ ...p, phase: 'connecting', percent: 80 }));
         addLog('Running WebRTC Leak check...');
-        const leakedIps = await checkWebRTCLeak();
-        const hasLeak = leakedIps.length > 1; // Basic assumption: multiple IPs could indicate a leak
+        const webrtcResults = await checkWebRTCLeak(apiData.clientIp);
+        const hasLeak = webrtcResults.leaks.length > 0;
         
-        if (hasLeak) addLog(`WARNING: WebRTC Leak detected! IPs: ${leakedIps.join(', ')}`);
+        addLog(`WebRTC details: ${webrtcResults.details}`);
+        if (hasLeak) addLog(`WARNING: WebRTC Leak detected! srflx IP: ${webrtcResults.leaks.join(', ')} !== HTTP IP: ${apiData.clientIp}`);
         else addLog('WebRTC check passed. No leaks.');
 
         const impact = realMetrics.latency || 0;

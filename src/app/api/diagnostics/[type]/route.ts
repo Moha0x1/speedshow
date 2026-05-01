@@ -6,7 +6,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
-  const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  let ip = '127.0.0.1';
+  if (forwardedFor) {
+    ip = forwardedFor.split(',')[0].trim();
+  } else {
+    ip = request.headers.get('cf-connecting-ip') || '127.0.0.1';
+  }
   
   const { type } = await params;
   let results: Record<string, string | number | boolean | object> = {};
@@ -83,7 +89,7 @@ export async function GET(
   return NextResponse.json({
     ...results,
     connectionInfo,
+    clientIp: ip,
     timestamp: Date.now() // Useful for calibration
-
   });
 }

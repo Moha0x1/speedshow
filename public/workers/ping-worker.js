@@ -1,71 +1,98 @@
 // Web Worker for High-Precision Network Measurements
-// Implements multi-sample latency measurement and statistical analysis.
+// Implements WebSocket-based multi-sample latency measurement and statistical analysis.
 
 self.onmessage = async (e) => {
-  const { type, endpoints } = e.data;
+  const { type } = e.data;
 
   if (type === 'START_PINGS') {
     const results = [];
-    const totalSamples = 40;
+    const totalSamples = 60;
     let successfulSamples = 0;
+    const wsUrl = 'wss://ws.postman-echo.com/raw';
     
-    for (let i = 0; i < totalSamples; i++) {
-      const start = performance.now();
-      try {
-        // Use a short timeout to detect packet loss/unresponsive endpoints
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
-        
-        await fetch(endpoints[i % endpoints.length], { 
-          mode: 'no-cors', 
-          cache: 'no-store',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        const end = performance.now();
-        results.push(end - start);
-        successfulSamples++;
-      } catch (err) {
-        // Sample failed, count as packet loss later
-        console.error("Ping sample failed:", err);
-      }
-      
-      // Small randomized delay to simulate real-world traffic intervals
-      await new Promise(r => setTimeout(r, 50 + Math.random() * 50));
-      
-      const runningAvg = results.length > 0 ? results.reduce((a, b) => a + b, 0) / results.length : null;
-
-      // Post progress updates for UI smoothness
-      self.postMessage({ 
-        type: 'PING_PROGRESS', 
-        current: i + 1, 
-        total: totalSamples,
-        latestPing: runningAvg ? Math.round(runningAvg) : null
-      });
+    let ws;
+    try {
+      ws = new WebSocket(wsUrl);
+    } catch (err) {
+      self.postMessage({ type: 'ERROR', error: 'Failed to connect to WebSocket ping server.' });
+      return;
     }
+
+    const connectPromise = new Promise((resolve, reject) => {
+      ws.onopen = resolve;
+      ws.onerror = reject;
+      // 5 second timeout for connection
+      setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000);
+    });
+
+    try {
+      await connectPromise;
+    } catch (err) {
+      self.postMessage({ type: 'ERROR', error: 'WebSocket connection failed or timed out.' });
+      return;
+    }
+
+    let i = 0;
+    
+    const pingLoop = async () => {
+      return new Promise((resolveComplete) => {
+        ws.onmessage = (event) => {
+          const sendTime = parseFloat(event.data);
+          if (!isNaN(sendTime)) {
+            const rtt = performance.now() - sendTime;
+            results.push(rtt);
+            successfulSamples++;
+            
+            const runningAvg = results.reduce((a, b) => a + b, 0) / results.length;
+            self.postMessage({ 
+              type: 'PING_PROGRESS', 
+              current: i, 
+              total: totalSamples,
+              latestPing: Math.round(runningAvg)
+            });
+          }
+        };
+
+        const interval = setInterval(() => {
+          if (i >= totalSamples) {
+            clearInterval(interval);
+            ws.close();
+            resolveComplete();
+            return;
+          }
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(performance.now().toString());
+          }
+          i++;
+        }, 200);
+        
+        setTimeout(() => {
+            clearInterval(interval);
+            if (ws.readyState === WebSocket.OPEN) ws.close();
+            resolveComplete();
+        }, totalSamples * 200 + 2000); // 12s + 2s padding
+      });
+    };
+
+    await pingLoop();
 
     if (results.length === 0) {
       self.postMessage({ type: 'ERROR', error: 'All measurement samples failed.' });
       return;
     }
 
-    // Sort to easily get min/max/median
     const sorted = [...results].sort((a, b) => a - b);
-    
-    // Average Latency
     const avgPing = results.reduce((a, b) => a + b, 0) / results.length;
-    
-    // Min/Max
     const minPing = sorted[0];
     const maxPing = sorted[sorted.length - 1];
     
-    // Standard Deviation (Used for Jitter calculation)
-    const variance = results.reduce((a, b) => a + Math.pow(b - avgPing, 2), 0) / results.length;
-    const stdDev = Math.sqrt(variance);
+    // Calculate Jitter (mean of absolute differences between consecutive RTTs)
+    let jitterSum = 0;
+    for (let j = 1; j < results.length; j++) {
+      jitterSum += Math.abs(results[j] - results[j - 1]);
+    }
+    const jitter = results.length > 1 ? jitterSum / (results.length - 1) : 0;
     
-    // Packet Loss Percentage
     const packetLoss = ((totalSamples - successfulSamples) / totalSamples) * 100;
 
     self.postMessage({
@@ -74,10 +101,10 @@ self.onmessage = async (e) => {
         latency: Math.round(avgPing),
         minLatency: Math.round(minPing),
         maxLatency: Math.round(maxPing),
-        jitter: parseFloat(stdDev.toFixed(2)),
+        jitter: parseFloat(jitter.toFixed(2)),
         packetLoss: parseFloat(packetLoss.toFixed(1)),
         samples: results.length,
-        rawSamples: sorted // Useful for distribution charts
+        rawSamples: sorted 
       }
     });
   }

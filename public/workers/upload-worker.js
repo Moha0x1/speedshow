@@ -5,48 +5,63 @@ self.onmessage = async (e) => {
   const { type, url, streams = 4 } = e.data;
 
   if (type === 'START_UPLOAD') {
-    const TEST_DURATION_MS = 5000;
+    const TEST_DURATION_MS = 10000; // 10 seconds
     const startTime = performance.now();
+    const CHUNK_SIZE = 4000000; // 4MB per chunk to prevent memory bloat
+    
+    // Create an uncompressable payload
+    const payload = new Uint8Array(CHUNK_SIZE);
+    for (let i = 0; i < CHUNK_SIZE; i += 65536) {
+      crypto.getRandomValues(new Uint8Array(payload.buffer, i, Math.min(65536, CHUNK_SIZE - i)));
+    }
+    
+    let peakTotalMbps = 0;
+    const latestSpeeds = new Array(streams).fill(0);
     let totalBytesUploaded = 0;
 
-    try {
-      // Create a 1MB payload of random, uncompressable data
-      const payloadSize = 1024 * 1024;
-      const payload = new Uint8Array(payloadSize);
-      for (let i = 0; i < payloadSize; i += 65536) {
-        crypto.getRandomValues(new Uint8Array(payload.buffer, i, Math.min(65536, payloadSize - i)));
-      }
-      
-      const controllers = Array.from({ length: streams }, () => new AbortController());
+    const controllers = Array.from({ length: streams }, () => new AbortController());
 
-      const fetchPromises = controllers.map(async (controller) => {
+    try {
+      const fetchPromises = controllers.map(async (controller, index) => {
         try {
           while (performance.now() - startTime < TEST_DURATION_MS) {
+            const chunkStartTime = performance.now();
             const streamUrl = `${url}?_r=${Math.random()}`;
-            await fetch(streamUrl, {
+            
+            const response = await fetch(streamUrl, {
               method: 'POST',
               body: payload,
               cache: 'no-store',
+              signal: controller.signal,
               headers: {
                 'Content-Type': 'application/octet-stream'
-              },
-              signal: controller.signal
+              }
             });
             
-            totalBytesUploaded += payloadSize;
+            if (!response.ok) continue;
 
-            const currentTime = performance.now();
-            const elapsedSeconds = (currentTime - startTime) / 1000;
-            const currentMbps = (totalBytesUploaded * 8) / (elapsedSeconds * 1024 * 1024);
+            const chunkEndTime = performance.now();
+            totalBytesUploaded += CHUNK_SIZE;
             
-            self.postMessage({ 
-              type: 'UPLOAD_PROGRESS', 
-              speedMbps: parseFloat(currentMbps.toFixed(2)),
-              elapsedSeconds
-            });
+            const elapsedMs = chunkEndTime - chunkStartTime;
+            if (elapsedMs > 0) {
+              const chunkMbps = (CHUNK_SIZE * 8) / (elapsedMs / 1000) / 1000000;
+              latestSpeeds[index] = chunkMbps;
+              
+              const currentTotalMbps = latestSpeeds.reduce((a, b) => a + b, 0);
+              if (currentTotalMbps > peakTotalMbps) {
+                peakTotalMbps = currentTotalMbps;
+              }
+              
+              self.postMessage({ 
+                type: 'UPLOAD_PROGRESS', 
+                speedMbps: parseFloat(currentTotalMbps.toFixed(2)),
+                elapsedSeconds: (performance.now() - startTime) / 1000
+              });
+            }
           }
         } catch (err) {
-          if (err.name !== 'AbortError') console.error("Upload stream error:", err);
+          if (err.name !== 'AbortError') console.error("Stream error:", err);
         }
       });
 
@@ -55,16 +70,12 @@ self.onmessage = async (e) => {
       controllers.forEach(c => c.abort());
       await Promise.allSettled(fetchPromises);
 
-      const finalTime = performance.now();
-      const durationSeconds = (finalTime - startTime) / 1000;
-      const finalSpeedMbps = (totalBytesUploaded * 8) / (durationSeconds * 1024 * 1024);
-
       self.postMessage({
         type: 'UPLOAD_COMPLETE',
         metrics: {
-          speedMbps: parseFloat(finalSpeedMbps.toFixed(2)),
+          speedMbps: parseFloat(peakTotalMbps.toFixed(2)), // Peak sustained value
           totalBytes: totalBytesUploaded,
-          duration: durationSeconds
+          duration: TEST_DURATION_MS / 1000
         }
       });
 

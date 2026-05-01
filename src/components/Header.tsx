@@ -9,7 +9,7 @@ export const Header = () => {
   const pathname = usePathname();
   
   return (
-    <header className="py-4 px-6 border-b border-card-border backdrop-blur-md sticky top-0 z-50 bg-black/20">
+    <header className="py-4 px-6 border-b border-card-border sticky top-0 z-50 bg-[#0a0a0a]/95">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] group-hover:scale-110 transition-transform">
