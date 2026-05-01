@@ -1,5 +1,5 @@
 // Web Worker for High-Precision Network Measurements
-// Implements WebSocket-based multi-sample latency measurement and statistical analysis.
+// Implements sequential HTTP latency measurement to Edge API.
 
 self.onmessage = async (e) => {
   const { type } = e.data;
@@ -8,73 +8,45 @@ self.onmessage = async (e) => {
     const results = [];
     const totalSamples = 60;
     let successfulSamples = 0;
-    const wsUrl = 'wss://ws.postman-echo.com/raw';
-    
-    let ws;
-    try {
-      ws = new WebSocket(wsUrl);
-    } catch (err) {
-      self.postMessage({ type: 'ERROR', error: 'Failed to connect to WebSocket ping server.' });
-      return;
-    }
 
-    const connectPromise = new Promise((resolve, reject) => {
-      ws.onopen = resolve;
-      ws.onerror = reject;
-      // 5 second timeout for connection
-      setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000);
-    });
-
-    try {
-      await connectPromise;
-    } catch (err) {
-      self.postMessage({ type: 'ERROR', error: 'WebSocket connection failed or timed out.' });
-      return;
-    }
-
-    let i = 0;
-    
-    const pingLoop = async () => {
-      return new Promise((resolveComplete) => {
-        ws.onmessage = (event) => {
-          const sendTime = parseFloat(event.data);
-          if (!isNaN(sendTime)) {
-            const rtt = performance.now() - sendTime;
-            results.push(rtt);
-            successfulSamples++;
-            
-            const runningAvg = results.reduce((a, b) => a + b, 0) / results.length;
-            self.postMessage({ 
-              type: 'PING_PROGRESS', 
-              current: i, 
-              total: totalSamples,
-              latestPing: Math.round(runningAvg)
-            });
-          }
-        };
-
-        const interval = setInterval(() => {
-          if (i >= totalSamples) {
-            clearInterval(interval);
-            ws.close();
-            resolveComplete();
-            return;
-          }
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(performance.now().toString());
-          }
-          i++;
-        }, 200);
+    for (let i = 0; i < totalSamples; i++) {
+      const start = performance.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
         
-        setTimeout(() => {
-            clearInterval(interval);
-            if (ws.readyState === WebSocket.OPEN) ws.close();
-            resolveComplete();
-        }, totalSamples * 200 + 2000); // 12s + 2s padding
-      });
-    };
+        const res = await fetch('/api/ping', { 
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          // Drain body to accurately measure complete transaction
+          await res.json();
+          const end = performance.now();
+          // Subtract ~5ms to roughly account for JSON parsing overhead
+          const rtt = Math.max(1, (end - start) - 5);
+          results.push(rtt);
+          successfulSamples++;
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error("Ping error:", err);
+      }
+      
+      const runningAvg = results.length > 0 ? results.reduce((a, b) => a + b, 0) / results.length : null;
 
-    await pingLoop();
+      self.postMessage({ 
+        type: 'PING_PROGRESS', 
+        current: i + 1, 
+        total: totalSamples,
+        latestPing: runningAvg ? Math.round(runningAvg) : null
+      });
+
+      // 100ms gap between calls
+      await new Promise(r => setTimeout(r, 100));
+    }
 
     if (results.length === 0) {
       self.postMessage({ type: 'ERROR', error: 'All measurement samples failed.' });

@@ -1,72 +1,86 @@
 // Web Worker for Throughput Measurement (Download)
-// Implements chunk-based multi-stream measurement over a fixed time window.
+// Implements Vercel-native edge streaming.
 
 self.onmessage = async (e) => {
-  const { type, url, streams = 4 } = e.data;
+  const { type } = e.data;
 
   if (type === 'START_DOWNLOAD') {
-    const TEST_DURATION_MS = 10000; // 10 seconds
+    const TEST_DURATION_MS = 10000;
     const startTime = performance.now();
-    const CHUNK_SIZE = 8000000; // 8MB
+    let totalBytes = 0;
     
-    let peakTotalMbps = 0;
-    const latestSpeeds = new Array(streams).fill(0);
-    let totalBytesDownloaded = 0;
-
-    const controllers = Array.from({ length: streams }, () => new AbortController());
+    // We want the peak sustained 1-second window.
+    // We will measure bytes transferred every 500ms.
+    let rollingWindowBytes = [];
+    let rollingWindowTimes = [];
+    let peakMbps = 0;
+    
+    let lastReportTime = startTime;
+    let bytesSinceLastReport = 0;
 
     try {
-      const fetchPromises = controllers.map(async (controller, index) => {
-        try {
-          while (performance.now() - startTime < TEST_DURATION_MS) {
-            const chunkStartTime = performance.now();
-            const streamUrl = `${url}?bytes=${CHUNK_SIZE}&_r=${Math.random()}`;
-            
-            const response = await fetch(streamUrl, { 
-              cache: 'no-store',
-              signal: controller.signal
-            });
-            
-            if (!response.ok) continue;
+      const response = await fetch('/api/download', { cache: 'no-store' });
+      
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to start download stream.");
+      }
 
-            const arrayBuffer = await response.arrayBuffer();
-            const chunkEndTime = performance.now();
-            
-            totalBytesDownloaded += arrayBuffer.byteLength;
-            
-            const elapsedMs = chunkEndTime - chunkStartTime;
-            if (elapsedMs > 0) {
-              const chunkMbps = (arrayBuffer.byteLength * 8) / (elapsedMs / 1000) / 1000000;
-              latestSpeeds[index] = chunkMbps;
-              
-              const currentTotalMbps = latestSpeeds.reduce((a, b) => a + b, 0);
-              if (currentTotalMbps > peakTotalMbps) {
-                peakTotalMbps = currentTotalMbps;
-              }
-              
-              self.postMessage({ 
-                type: 'DOWNLOAD_PROGRESS', 
-                speedMbps: parseFloat(currentTotalMbps.toFixed(2)),
-                elapsedSeconds: (performance.now() - startTime) / 1000
-              });
-            }
+      const reader = response.body.getReader();
+
+      while (performance.now() - startTime < TEST_DURATION_MS) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        const chunkLen = value.length;
+        totalBytes += chunkLen;
+        bytesSinceLastReport += chunkLen;
+
+        const now = performance.now();
+        if (now - lastReportTime >= 500) {
+          const elapsed = now - lastReportTime;
+          const currentMbps = (bytesSinceLastReport * 8) / (elapsed / 1000) / 1000000;
+          
+          rollingWindowBytes.push(bytesSinceLastReport);
+          rollingWindowTimes.push(elapsed);
+          
+          // Keep only the last 2 samples (1 second window = 2 * 500ms)
+          if (rollingWindowBytes.length > 2) {
+            rollingWindowBytes.shift();
+            rollingWindowTimes.shift();
           }
-        } catch (err) {
-          if (err.name !== 'AbortError') console.error("Stream error:", err);
-        }
-      });
+          
+          if (rollingWindowBytes.length === 2) {
+            const windowBytes = rollingWindowBytes[0] + rollingWindowBytes[1];
+            const windowTime = rollingWindowTimes[0] + rollingWindowTimes[1];
+            const windowMbps = (windowBytes * 8) / (windowTime / 1000) / 1000000;
+            if (windowMbps > peakMbps) {
+              peakMbps = windowMbps;
+            }
+          } else {
+            if (currentMbps > peakMbps) peakMbps = currentMbps;
+          }
 
-      // Await duration, then abort everything to be safe
-      await new Promise(resolve => setTimeout(resolve, TEST_DURATION_MS));
-      controllers.forEach(c => c.abort());
-      await Promise.allSettled(fetchPromises);
+          self.postMessage({ 
+            type: 'DOWNLOAD_PROGRESS', 
+            speedMbps: parseFloat((rollingWindowBytes.length === 2 ? peakMbps : currentMbps).toFixed(2)),
+            elapsedSeconds: (now - startTime) / 1000
+          });
+          
+          lastReportTime = now;
+          bytesSinceLastReport = 0;
+        }
+      }
+      
+      // Cleanup the reader gracefully to stop the edge function if we hit 10s client side first
+      await reader.cancel();
 
       self.postMessage({
         type: 'DOWNLOAD_COMPLETE',
         metrics: {
-          speedMbps: parseFloat(peakTotalMbps.toFixed(2)), // Peak sustained value
-          totalBytes: totalBytesDownloaded,
-          duration: TEST_DURATION_MS / 1000
+          speedMbps: parseFloat(peakMbps.toFixed(2)),
+          totalBytes,
+          duration: (performance.now() - startTime) / 1000
         }
       });
 

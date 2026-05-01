@@ -1,13 +1,13 @@
 // Web Worker for Throughput Measurement (Upload)
-// Implements chunk-based multi-stream measurement over a fixed time window.
+// Implements sequential chunk uploads to Edge API.
 
 self.onmessage = async (e) => {
-  const { type, url, streams = 4 } = e.data;
+  const { type } = e.data;
 
   if (type === 'START_UPLOAD') {
-    const TEST_DURATION_MS = 10000; // 10 seconds
     const startTime = performance.now();
-    const CHUNK_SIZE = 4000000; // 4MB per chunk to prevent memory bloat
+    const CHUNK_SIZE = 4000000; // 4MB per chunk to stay under Vercel 4.5MB limit
+    const TOTAL_CHUNKS = 3;
     
     // Create an uncompressable payload
     const payload = new Uint8Array(CHUNK_SIZE);
@@ -15,67 +15,56 @@ self.onmessage = async (e) => {
       crypto.getRandomValues(new Uint8Array(payload.buffer, i, Math.min(65536, CHUNK_SIZE - i)));
     }
     
-    let peakTotalMbps = 0;
-    const latestSpeeds = new Array(streams).fill(0);
+    const results = [];
     let totalBytesUploaded = 0;
 
-    const controllers = Array.from({ length: streams }, () => new AbortController());
-
     try {
-      const fetchPromises = controllers.map(async (controller, index) => {
-        try {
-          while (performance.now() - startTime < TEST_DURATION_MS) {
-            const chunkStartTime = performance.now();
-            const streamUrl = `${url}?_r=${Math.random()}`;
-            
-            const response = await fetch(streamUrl, {
-              method: 'POST',
-              body: payload,
-              cache: 'no-store',
-              signal: controller.signal,
-              headers: {
-                'Content-Type': 'application/octet-stream'
-              }
-            });
-            
-            if (!response.ok) continue;
-
-            const chunkEndTime = performance.now();
-            totalBytesUploaded += CHUNK_SIZE;
-            
-            const elapsedMs = chunkEndTime - chunkStartTime;
-            if (elapsedMs > 0) {
-              const chunkMbps = (CHUNK_SIZE * 8) / (elapsedMs / 1000) / 1000000;
-              latestSpeeds[index] = chunkMbps;
-              
-              const currentTotalMbps = latestSpeeds.reduce((a, b) => a + b, 0);
-              if (currentTotalMbps > peakTotalMbps) {
-                peakTotalMbps = currentTotalMbps;
-              }
-              
-              self.postMessage({ 
-                type: 'UPLOAD_PROGRESS', 
-                speedMbps: parseFloat(currentTotalMbps.toFixed(2)),
-                elapsedSeconds: (performance.now() - startTime) / 1000
-              });
-            }
+      for (let i = 0; i < TOTAL_CHUNKS; i++) {
+        const chunkStartTime = performance.now();
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: payload,
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/octet-stream'
           }
-        } catch (err) {
-          if (err.name !== 'AbortError') console.error("Stream error:", err);
+        });
+        
+        if (!response.ok) {
+          throw new Error("Upload chunk failed.");
         }
-      });
 
-      // Await duration, then abort everything to be safe
-      await new Promise(resolve => setTimeout(resolve, TEST_DURATION_MS));
-      controllers.forEach(c => c.abort());
-      await Promise.allSettled(fetchPromises);
+        const data = await response.json();
+        const chunkEndTime = performance.now();
+        
+        totalBytesUploaded += data.bytes;
+        
+        // Edge API returns data.elapsedMs and data.mbps, but we can also calculate it
+        // The API's elapsedMs doesn't include full network transport time back to client, 
+        // so client-side RTT is more accurate for end-to-end throughput.
+        const elapsedMs = chunkEndTime - chunkStartTime;
+        const currentMbps = (data.bytes * 8) / (elapsedMs / 1000) / 1000000;
+        
+        results.push(currentMbps);
+        
+        self.postMessage({ 
+          type: 'UPLOAD_PROGRESS', 
+          speedMbps: parseFloat(currentMbps.toFixed(2)),
+          elapsedSeconds: (performance.now() - startTime) / 1000
+        });
+      }
+
+      // Calculate median
+      results.sort((a, b) => a - b);
+      const medianMbps = results[Math.floor(results.length / 2)];
 
       self.postMessage({
         type: 'UPLOAD_COMPLETE',
         metrics: {
-          speedMbps: parseFloat(peakTotalMbps.toFixed(2)), // Peak sustained value
+          speedMbps: parseFloat(medianMbps.toFixed(2)),
           totalBytes: totalBytesUploaded,
-          duration: TEST_DURATION_MS / 1000
+          duration: (performance.now() - startTime) / 1000
         }
       });
 

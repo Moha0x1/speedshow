@@ -90,7 +90,6 @@ export const useTestRunner = () => {
       if (isLatencyTest || isThroughputTest || type === 'vpn') {
         setProgress(p => ({ ...p, phase: 'ping', percent: 0 }));
         addLog(`Starting latency test with ${type}...`);
-        const endpoints = ['https://1.1.1.1/cdn-cgi/trace', 'https://speed.cloudflare.com/cdn-cgi/trace', 'https://cp.cloudflare.com/generate_204'];
         const pingWorker = new Worker('/workers/ping-worker.js');
         
         const latencyData = await new Promise<Record<string, any>>((resolve) => {
@@ -118,7 +117,7 @@ export const useTestRunner = () => {
               resolve({ latency: 999, jitter: 999, packetLoss: 100 });
             }
           };
-          pingWorker.postMessage({ type: 'START_PINGS', endpoints });
+          pingWorker.postMessage({ type: 'START_PINGS' });
         });
         realMetrics = { ...latencyData };
         addLog(`Base Latency: ${latencyData.latency}ms, Jitter: ${latencyData.jitter}ms`);
@@ -126,36 +125,36 @@ export const useTestRunner = () => {
 
       // 3. Throughput / Download Measurement
       let activePingSpikes: number[] = [];
-      let wsBufferbloat: WebSocket | null = null;
       let bufferbloatInterval: NodeJS.Timeout | null = null;
+      let activePingController: AbortController | null = null;
 
       const startBufferbloatPing = () => {
-        try {
-          wsBufferbloat = new WebSocket('wss://ws.postman-echo.com/raw');
-          wsBufferbloat.onopen = () => {
-            bufferbloatInterval = setInterval(() => {
-              if (wsBufferbloat?.readyState === WebSocket.OPEN) {
-                wsBufferbloat.send(performance.now().toString());
-              }
-            }, 250);
-          };
-          wsBufferbloat.onmessage = (event) => {
-            const sendTime = parseFloat(event.data);
-            if (!isNaN(sendTime)) {
-              activePingSpikes.push(performance.now() - sendTime);
+        bufferbloatInterval = setInterval(async () => {
+          const start = performance.now();
+          activePingController = new AbortController();
+          const timeoutId = setTimeout(() => activePingController?.abort(), 3000);
+          try {
+            const res = await fetch('/api/ping', { 
+              cache: 'no-store',
+              signal: activePingController.signal 
+            });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+              await res.json();
+              activePingSpikes.push(Math.max(1, performance.now() - start - 5));
             }
-          };
-        } catch { /* ignore */ }
+          } catch { /* ignore */ }
+        }, 500);
       };
 
       const stopBufferbloatPing = () => {
         if (bufferbloatInterval) clearInterval(bufferbloatInterval);
-        if (wsBufferbloat) wsBufferbloat.close();
+        if (activePingController) activePingController.abort();
       };
 
       if (isThroughputTest) {
         setProgress(p => ({ ...p, phase: 'download', percent: 0, currentDownload: 0 }));
-        addLog(`Initiating multi-stream download (8MB chunks, 4 streams)...`);
+        addLog(`Initiating download stream (Edge API)...`);
         
         startBufferbloatPing();
 
@@ -180,8 +179,8 @@ export const useTestRunner = () => {
               resolve(e.data.metrics);
             }
           };
-          // Request download chunks for LibreSpeed protocol test
-          speedWorker.postMessage({ type: 'START_DOWNLOAD', url: 'https://speed.cloudflare.com/__down', streams: 4 });
+          // Request download using new API
+          speedWorker.postMessage({ type: 'START_DOWNLOAD' });
         });
         
         stopBufferbloatPing();
@@ -215,7 +214,7 @@ export const useTestRunner = () => {
               resolve(e.data.metrics);
             }
           };
-          uploadWorker.postMessage({ type: 'START_UPLOAD', url: 'https://speed.cloudflare.com/__up', streams: 4 });
+          uploadWorker.postMessage({ type: 'START_UPLOAD' });
         });
         
         stopBufferbloatPing();
