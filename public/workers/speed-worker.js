@@ -1,5 +1,5 @@
-// Web Worker for Throughput Measurement (Download)
-// Implements Vercel-native edge streaming.
+// Web Worker for Throughput Measurement
+// Handles both Download and Upload measurements natively to Edge API.
 
 self.onmessage = async (e) => {
   const { type } = e.data;
@@ -9,8 +9,6 @@ self.onmessage = async (e) => {
     const startTime = performance.now();
     let totalBytes = 0;
     
-    // We want the peak sustained 1-second window.
-    // We will measure bytes transferred every 500ms.
     let rollingWindowBytes = [];
     let rollingWindowTimes = [];
     let peakMbps = 0;
@@ -44,7 +42,6 @@ self.onmessage = async (e) => {
           rollingWindowBytes.push(bytesSinceLastReport);
           rollingWindowTimes.push(elapsed);
           
-          // Keep only the last 2 samples (1 second window = 2 * 500ms)
           if (rollingWindowBytes.length > 2) {
             rollingWindowBytes.shift();
             rollingWindowTimes.shift();
@@ -62,9 +59,10 @@ self.onmessage = async (e) => {
           }
 
           self.postMessage({ 
-            type: 'DOWNLOAD_PROGRESS', 
-            speedMbps: parseFloat((rollingWindowBytes.length === 2 ? peakMbps : currentMbps).toFixed(2)),
-            elapsedSeconds: (now - startTime) / 1000
+            type: 'progress',
+            metric: 'download',
+            value: parseFloat((rollingWindowBytes.length === 2 ? peakMbps : currentMbps).toFixed(2)),
+            unit: 'Mbps'
           });
           
           lastReportTime = now;
@@ -72,20 +70,79 @@ self.onmessage = async (e) => {
         }
       }
       
-      // Cleanup the reader gracefully to stop the edge function if we hit 10s client side first
       await reader.cancel();
 
       self.postMessage({
-        type: 'DOWNLOAD_COMPLETE',
-        metrics: {
-          speedMbps: parseFloat(peakMbps.toFixed(2)),
-          totalBytes,
-          duration: (performance.now() - startTime) / 1000
-        }
+        type: 'result',
+        metric: 'download',
+        value: parseFloat(peakMbps.toFixed(2)),
+        unit: 'Mbps'
       });
 
     } catch (err) {
-      self.postMessage({ type: 'ERROR', error: err.message });
+      self.postMessage({ type: 'error', metric: 'download', error: err.message });
+    }
+  }
+
+  if (type === 'START_UPLOAD') {
+    const startTime = performance.now();
+    const CHUNK_SIZE = 4000000; // 4MB
+    const TOTAL_CHUNKS = 3;
+    
+    // Create an uncompressable payload
+    const payload = new Uint8Array(CHUNK_SIZE);
+    for (let i = 0; i < CHUNK_SIZE; i += 65536) {
+      crypto.getRandomValues(new Uint8Array(payload.buffer, i, Math.min(65536, CHUNK_SIZE - i)));
+    }
+    
+    const results = [];
+
+    try {
+      for (let i = 0; i < TOTAL_CHUNKS; i++) {
+        const chunkStartTime = performance.now();
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: payload,
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/octet-stream'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error("Upload chunk failed.");
+        }
+
+        const data = await response.json();
+        const chunkEndTime = performance.now();
+        
+        const elapsedMs = chunkEndTime - chunkStartTime;
+        const currentMbps = (data.bytes * 8) / (elapsedMs / 1000) / 1000000;
+        
+        results.push(currentMbps);
+        
+        self.postMessage({ 
+          type: 'progress',
+          metric: 'upload',
+          value: parseFloat(currentMbps.toFixed(2)),
+          unit: 'Mbps'
+        });
+      }
+
+      // Median
+      results.sort((a, b) => a - b);
+      const medianMbps = results[Math.floor(results.length / 2)];
+
+      self.postMessage({
+        type: 'result',
+        metric: 'upload',
+        value: parseFloat(medianMbps.toFixed(2)),
+        unit: 'Mbps'
+      });
+
+    } catch (err) {
+      self.postMessage({ type: 'error', metric: 'upload', error: err.message });
     }
   }
 };
