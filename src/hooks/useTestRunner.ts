@@ -93,12 +93,11 @@ export const useTestRunner = () => {
         const endpoints = ['https://1.1.1.1/cdn-cgi/trace', 'https://speed.cloudflare.com/cdn-cgi/trace', 'https://cp.cloudflare.com/generate_204'];
         const pingWorker = new Worker('/workers/ping-worker.js');
         
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const latencyData = await new Promise<Record<string, any>>((resolve) => {
           const timeout = setTimeout(() => {
              pingWorker.terminate();
              resolve({ latency: 999, jitter: 999, packetLoss: 100 });
-          }, 15000); // 15s timeout
+          }, 20000); // 20s timeout to allow 12s WebSocket ping + connection time
           
           pingWorker.onmessage = (e) => {
             if (e.data.type === 'PING_PROGRESS') {
@@ -112,6 +111,11 @@ export const useTestRunner = () => {
               clearTimeout(timeout);
               pingWorker.terminate();
               resolve(e.data.metrics);
+            } else if (e.data.type === 'ERROR') {
+              clearTimeout(timeout);
+              pingWorker.terminate();
+              console.error("Ping Worker Error:", e.data.error);
+              resolve({ latency: 999, jitter: 999, packetLoss: 100 });
             }
           };
           pingWorker.postMessage({ type: 'START_PINGS', endpoints });
