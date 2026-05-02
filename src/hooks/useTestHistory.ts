@@ -1,25 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TestHistoryEntry, TestType, AnyResult } from "@/lib/types";
 
 const HISTORY_KEY = "speedshow_history";
 const MAX_HISTORY_ITEMS = 20;
 
 export const useTestHistory = () => {
-  const [history, setHistory] = useState<TestHistoryEntry[]>([]);
-
-  // Load on mount
-  useEffect(() => {
+  const [history, setHistory] = useState<TestHistoryEntry[]>(() => {
     try {
+      if (typeof window === "undefined") {
+        return [];
+      }
+
       const stored = localStorage.getItem(HISTORY_KEY);
       if (stored) {
-        setHistory(JSON.parse(stored));
+        return JSON.parse(stored);
       }
     } catch (e) {
       console.error("Failed to load test history", e);
     }
-  }, []);
+
+    return [];
+  });
 
   const addHistoryEntry = (type: TestType, score: number, metrics: AnyResult) => {
     const entry: TestHistoryEntry = {

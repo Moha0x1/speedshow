@@ -3,14 +3,14 @@
 @theme {
   --color-background: #020617;
   --color-foreground: #f8fafc;
-  --color-primary: #3b82f6;
-  --color-secondary: #a855f7;
-  --color-accent: #22d3ee;
+  --color-primary: #eab308;
+  --color-secondary: #fbbf24;
+  --color-accent: #fef08a;
   --color-muted: #64748b;
   --color-card: rgba(15, 23, 42, 0.6);
   --color-card-border: rgba(51, 65, 85, 0.5);
   
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Avenir Next", "Segoe UI", "Helvetica Neue", ui-rounded, system-ui, sans-serif;
   
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-glow: glow 2s ease-in-out infinite alternate;
@@ -18,10 +18,10 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 5px rgba(234, 179, 8, 0.5), 0 0 10px rgba(234, 179, 8, 0.3);
   }
   to {
-    box-shadow: 0 0 10px rgba(34, 211, 238, 0.8), 0 0 20px rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.8), 0 0 20px rgba(251, 191, 36, 0.5);
   }
 }
 
@@ -50,8 +50,8 @@ body {
 
 .glass-hover:hover {
   background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+  border-color: rgba(234, 179, 8, 0.5);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.1);
 }
 
 /* Custom scrollbar */

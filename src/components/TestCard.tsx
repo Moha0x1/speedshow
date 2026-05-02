@@ -18,9 +18,9 @@ interface TestCardProps {
 export const TestCard = ({ title, description, icon: Icon, type, isActive, onClick }: TestCardProps) => {
   const getColors = () => {
     switch (type) {
-      case 'gaming': return 'from-blue-500/20 to-purple-500/20 text-blue-400 group-hover:border-blue-500/50';
+      case 'gaming': return 'from-yellow-500/20 to-orange-500/20 text-yellow-400 group-hover:border-yellow-500/50';
       case 'streaming': return 'from-purple-500/20 to-pink-500/20 text-purple-400 group-hover:border-purple-500/50';
-      case 'vpn': return 'from-cyan-500/20 to-blue-500/20 text-cyan-400 group-hover:border-cyan-500/50';
+      case 'vpn': return 'from-orange-500/20 to-yellow-500/20 text-orange-400 group-hover:border-orange-500/50';
       case 'web3': return 'from-orange-500/20 to-yellow-500/20 text-orange-400 group-hover:border-orange-500/50';
       default: return 'from-gray-500/20 to-slate-500/20 text-gray-400';
     }

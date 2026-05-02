@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const DOMAIN = "https://speedshow.vercel.app";
 export const metadata: Metadata = {
@@ -66,7 +60,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} antialiased`}>
+      <body className="antialiased">
         {children}
         <SpeedInsights />
       </body>
