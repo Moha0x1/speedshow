@@ -30,18 +30,31 @@
   --foreground: #f8fafc;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(250, 204, 21, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 10%, rgba(56, 189, 248, 0.08), transparent 22%),
+    linear-gradient(180deg, #020617 0%, #07101f 45%, #020617 100%);
 }
 
 /* Glassmorphism utility */
 .glass {
   background: rgba(15, 23, 42, 0.85); /* High opacity to replace blur */
   border: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+::selection {
+  background: rgba(250, 204, 21, 0.3);
+  color: #fff;
 }
 
 .glass-hover {

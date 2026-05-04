@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, House, Network, Radio, ShieldCheck } from "lucide-react";
+import { Gamepad2, House, Radio } from "lucide-react";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { TestPanel } from "@/components/TestPanel";
 import { useTestRunner } from "@/hooks/useTestRunner";
@@ -13,36 +13,30 @@ interface SpeedTestToolProps {
   showAllCards?: boolean;
 }
 
+const statusLabel = (status: string) => {
+  if (status === "Ready") return "Listo";
+  if (status === "Borderline") return "Justo";
+  return "Mejorable";
+};
+
 const TESTS = [
   {
     type: "internet-speed-test" as const,
-    title: "Home & Work",
-    description: "Real download, upload and latency data for everyday internet use.",
+    title: "Casa",
+    description: "Para saber si tu red aguanta videollamadas, 4K y varios dispositivos.",
     icon: House,
   },
   {
     type: "streaming" as const,
-    title: "Creator",
-    description: "See if your line is ready for Twitch, YouTube uploads and live streaming.",
+    title: "Streaming",
+    description: "Pensado para Twitch, YouTube, subidas y directos sin cortes.",
     icon: Radio,
   },
   {
     type: "gaming" as const,
     title: "Gaming",
-    description: "Check ping, jitter and packet loss for shooters, co-op and cloud gaming.",
+    description: "Mide ping, jitter y perdida para shooters, rankeds y cloud gaming.",
     icon: Gamepad2,
-  },
-  {
-    type: "vpn" as const,
-    title: "Privacy",
-    description: "Check visible IP clues, latency cost and WebRTC exposure.",
-    icon: ShieldCheck,
-  },
-  {
-    type: "web3" as const,
-    title: "Web3",
-    description: "Measure live RPC responsiveness on major public blockchain endpoints.",
-    icon: Network,
   },
 ];
 
@@ -97,22 +91,22 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 grid gap-4 rounded-[2rem] border border-white/8 bg-white/[0.03] p-5 md:grid-cols-[auto,1fr]"
+          className="mb-6 grid gap-4 rounded-[1.75rem] border border-white/8 bg-white/[0.03] p-4 md:grid-cols-[auto,1fr]"
         >
           <div className="flex justify-center">
-            <ScoreGauge score={globalScore} label="Overall" size={128} />
+            <ScoreGauge score={globalScore} label="Global" size={112} />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <h3 className="text-xl font-bold text-white">Useful, real-world network snapshot</h3>
+              <h3 className="text-lg font-bold text-white">Resumen rapido</h3>
               <p className="mt-1 text-sm text-muted">{latestResult.headline}</p>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-3">
               {latestResult.audience.slice(0, 3).map((item) => (
-                <div key={item.title} className="rounded-2xl border border-white/8 bg-black/20 p-3">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">{item.status}</div>
+                <div key={item.title} className="rounded-xl border border-white/8 bg-black/20 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">{statusLabel(item.status)}</div>
                   <div className="mt-1 text-sm font-semibold text-white">{item.title}</div>
                   <p className="mt-1 text-xs leading-relaxed text-muted">{item.detail}</p>
                 </div>
@@ -121,7 +115,7 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
 
             {latestResult.connectionInfo && (
               <p className="text-xs text-muted">
-                Measured live from {latestResult.connectionInfo.location} on {latestResult.connectionInfo.isp}.
+                Medido en vivo desde {latestResult.connectionInfo.location} con {latestResult.connectionInfo.isp}.
               </p>
             )}
           </div>
@@ -129,7 +123,7 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
       )}
 
       {showAllCards && !activeTest && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {TESTS.map((test, index) => (
             <motion.button
               key={test.type}
@@ -138,18 +132,18 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => runTest(test.type)}
-              className="group rounded-[1.75rem] border border-white/8 bg-white/[0.03] p-5 text-left transition-all hover:border-primary/40 hover:bg-white/[0.05]"
+              className="group rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4 text-left transition-all hover:border-primary/40 hover:bg-white/[0.05]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="rounded-2xl border border-primary/20 bg-primary/10 p-3 text-primary transition-transform group-hover:scale-105">
                   <test.icon className="h-5 w-5" />
                 </div>
                 <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-                  Live test
+                  Test real
                 </span>
               </div>
 
-              <h4 className="mt-5 text-xl font-bold text-white">{test.title}</h4>
+              <h4 className="mt-4 text-lg font-bold text-white">{test.title}</h4>
               <p className="mt-2 text-sm leading-relaxed text-muted">{test.description}</p>
             </motion.button>
           ))}
@@ -175,7 +169,7 @@ export const SpeedTestTool = ({ initialTest, showAllCards = true }: SpeedTestToo
                   onClick={reset}
                   className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10"
                 >
-                  {initialTest ? "Run Again" : "Pick Another Test"}
+                  {initialTest ? "Repetir test" : "Ver otros tests"}
                 </button>
               </div>
             )}

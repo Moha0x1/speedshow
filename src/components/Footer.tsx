@@ -5,23 +5,27 @@ import Link from "next/link";
 
 export const Footer = () => {
   return (
-    <footer className="py-8 px-6 border-t border-card-border mt-8 bg-black/40">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div className="flex items-center gap-2 opacity-50">
-          <div className="w-6 h-6 bg-white/20 rounded-md" />
-          <span className="font-bold text-sm tracking-tighter text-white">SPEEDSHOW</span>
+    <footer className="mt-8 border-t border-card-border bg-black/40 px-6 py-10">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+        <div className="max-w-sm">
+          <div className="flex items-center gap-2 opacity-70">
+            <div className="h-6 w-6 rounded-md bg-white/20" />
+            <span className="text-sm font-bold tracking-tighter text-white">SPEEDSHOW</span>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-slate-400">
+            Una forma mas clara de ver si tu conexion da la talla para casa, streaming y gaming.
+          </p>
         </div>
         
-        <p className="text-muted text-xs font-bold uppercase tracking-widest order-3 md:order-2">
-          &copy; 2026 crafted with ❤️ in Barcelona
+        <p className="order-3 text-xs font-bold uppercase tracking-widest text-muted md:order-2">
+          &copy; 2026 crafted in Barcelona
         </p>
         
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-xs font-bold uppercase tracking-widest text-muted order-2 md:order-3">
-          <Link href="/gaming-speed-test" className="hover:text-white transition-colors">Gaming</Link>
-          <Link href="/streaming-speed-test" className="hover:text-white transition-colors">Streaming</Link>
-          <Link href="/vpn-performance-test" className="hover:text-white transition-colors">VPN</Link>
-          <Link href="/web3-latency-test" className="hover:text-white transition-colors">Web3</Link>
-          <Link href="/privacy" className="hover:text-white transition-colors text-primary/80">Privacy</Link>
+        <div className="order-2 flex flex-wrap justify-center gap-x-6 gap-y-4 text-xs font-bold uppercase tracking-widest text-muted md:order-3">
+          <Link href="/internet-speed-test" className="transition-colors hover:text-white">Casa</Link>
+          <Link href="/streaming-speed-test" className="transition-colors hover:text-white">Streaming</Link>
+          <Link href="/gaming-speed-test" className="transition-colors hover:text-white">Gaming</Link>
+          <Link href="/vpn-performance-test" className="transition-colors hover:text-white">Privacy</Link>
         </div>
       </div>
     </footer>

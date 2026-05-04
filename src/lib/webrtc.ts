@@ -70,7 +70,7 @@ export async function checkWebRTCLeak(ispDetectedIP: string): Promise<WebRTCResu
         }
       }, 5000);
       
-    } catch (err) {
+    } catch {
       resolve({
         publicIP: null,
         localIPs: [],

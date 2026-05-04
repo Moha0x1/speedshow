@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     const res = await fetch(url, { cache: 'no-store' });
     const data = await res.json();
     return Response.json(data);
-  } catch (err) {
+  } catch {
     return Response.json({ status: "fail", message: "ISP API failed", query: clientIp }, { status: 500 });
   }
 }

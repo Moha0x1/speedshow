@@ -83,31 +83,31 @@ const listConnectionFacts = (
   const facts: ResultFact[] = [];
 
   if (connectionInfo?.isp) {
-    facts.push({ label: "Network", value: connectionInfo.isp });
+    facts.push({ label: "Operador", value: connectionInfo.isp });
   }
 
   if (connectionInfo?.location) {
-    facts.push({ label: "Location", value: connectionInfo.location });
+    facts.push({ label: "Ubicacion", value: connectionInfo.location });
   }
 
   if (networkHints?.transport && networkHints.transport !== "Unknown") {
-    facts.push({ label: "Local link", value: networkHints.transport });
+    facts.push({ label: "Enlace local", value: networkHints.transport });
   }
 
   if (networkHints?.effectiveType) {
-    facts.push({ label: "Browser hint", value: networkHints.effectiveType.toUpperCase() });
+    facts.push({ label: "Pista del navegador", value: networkHints.effectiveType.toUpperCase() });
   }
 
   if (typeof networkHints?.downlinkMbps === "number") {
-    facts.push({ label: "OS estimate", value: `~${round(networkHints.downlinkMbps)} Mbps` });
+    facts.push({ label: "Estimacion del sistema", value: `~${round(networkHints.downlinkMbps)} Mbps` });
   }
 
   if (measuredWith) {
-    facts.push({ label: "Measured with", value: measuredWith });
+    facts.push({ label: "Medido con", value: measuredWith });
   }
 
   if (samples) {
-    facts.push({ label: "Samples", value: `${samples}` });
+    facts.push({ label: "Muestras", value: `${samples}` });
   }
 
   return facts.slice(0, 6);
@@ -190,23 +190,23 @@ export const buildGamingResults = (
 
   const headline =
     score >= 85
-      ? "Competitive-ready latency."
+      ? "Muy buena para jugar en serio."
       : score >= 65
-        ? "Solid for most online games."
-        : "Playable, but the connection is not stable enough for serious matches.";
+        ? "Buena para la mayoria de partidas online."
+        : "Se puede jugar, pero la red no esta fina para partidas exigentes.";
 
-  const summary = `Browser RTT measured ${ping} ms with ${jitter} ms jitter and ${round(packetLoss)}% packet loss.`;
+  const summary = `${ping} ms de ping, ${jitter} ms de jitter y ${round(packetLoss)}% de perdida.`;
 
   const recommendations = [
     packetLoss > 0.5
-      ? "Fix packet loss first: use Ethernet, reboot the router, and pause downloads on other devices."
-      : "Keep the route stable: Ethernet or strong 5 GHz / Wi-Fi 6 beats weak Wi-Fi for gaming.",
+      ? "Ataca primero la perdida: cable, reinicio del router y nada de descargas en otros dispositivos."
+      : "Si puedes, juega por cable. Para gaming la estabilidad vale mas que el Wi-Fi comodo.",
     jitter > 8
-      ? "High jitter usually means congestion or weak Wi-Fi. Check background traffic and router QoS/SQM."
-      : "Low jitter means the line is stable; keep background traffic low during ranked play.",
+      ? "Ese jitter suele ser congestion o mal Wi-Fi. Revisa trafico en segundo plano y QoS/SQM."
+      : "La linea va estable. Intenta no cargarla mientras juegas rankeds.",
     ping > 45
-      ? "Server distance or ISP routing is adding delay. Pick nearby regions and test with game-specific routing if needed."
-      : "Latency is in a good range; focus on eliminating packet loss and household congestion.",
+      ? "Tienes algo de retraso por ruta o distancia al servidor. Usa regiones cercanas y prueba por cable."
+      : "La latencia va bien. Si notas problemas, mira sobre todo la congestion y la perdida.",
   ];
 
   return {
@@ -223,24 +223,24 @@ export const buildGamingResults = (
       recommendations,
       [
         {
-          title: "Competitive shooters",
+          title: "Shooters competitivos",
           status: readiness(competitiveScore),
-          detail: `Best when RTT stays under 30 ms and packet loss is near zero. You are at ${ping} ms.`,
+          detail: `Lo ideal es bajar de 30 ms y tener casi 0% de perdida. Ahora estas en ${ping} ms.`,
         },
         {
-          title: "Party games and co-op",
+          title: "Coop y juegos casuales",
           status: readiness(partyScore),
-          detail: `Casual play tolerates more delay, but jitter above 10 ms still causes rubber-banding.`,
+          detail: "Aguantan mas retraso, pero con jitter alto empiezan los tirones y el rubber-banding.",
         },
         {
           title: "Cloud gaming",
           status: readiness(cloudScore),
-          detail: `Cloud gaming needs both low delay and stable packets. Jitter is the key risk here.`,
+          detail: "Aqui importan mucho la latencia y la estabilidad. El jitter es lo que mas suele romperlo.",
         },
       ],
       connectionInfo,
       networkHints,
-      "18 HTTP RTT samples to Cloudflare edge endpoints",
+      "18 muestras HTTP de latencia contra endpoints edge de Cloudflare",
       metrics.samples,
     ),
   };
@@ -270,42 +270,42 @@ export const buildStreamingResults = (
   const headline =
     score >= 85
       ? variant === "internet-speed-test"
-        ? "Strong home internet with real headroom."
-        : "Ready for streaming and creator uploads."
+        ? "Muy buena para casa y con margen real."
+        : "Lista para streaming y subidas con buen margen."
       : score >= 65
         ? variant === "internet-speed-test"
-          ? "Good day-to-day internet, but heavy use can expose limits."
-          : "Capable for streaming, but not much margin when the line gets busy."
+          ? "Va bien en el dia a dia, aunque con mucha carga puede sufrir."
+          : "Vale para streaming, pero con poco margen cuando la red se llena."
         : variant === "internet-speed-test"
-          ? "Usable for basics, but this line will struggle under load."
-          : "Throughput is not strong enough for reliable creator or multi-device streaming.";
+          ? "Sirve para lo basico, pero flojea cuando hay carga."
+          : "La subida o la estabilidad no alcanzan para directos comodos.";
 
   const homeProfile =
     downloadSpeed >= 100 && uploadSpeed >= 20
-      ? "Plenty of room for 4K, video calls, and cloud backups at the same time."
+      ? "Tienes margen para 4K, videollamadas y varios dispositivos a la vez."
       : downloadSpeed >= 50 && uploadSpeed >= 10
-        ? "Comfortable for work, browsing, and one or two 4K streams."
-        : "Fine for light browsing and one main stream, but uploads and busy hours may hurt.";
+        ? "Vas bien para trabajo, navegar y una o dos pantallas exigentes."
+        : "Te da para uso normal, pero las subidas y las horas punta te van a limitar.";
 
   const creatorProfile =
     uploadSpeed >= 25
-      ? "Strong enough for 1440p or 4K uploads and solid live streaming headroom."
+      ? "Muy bien para directos serios y subidas grandes."
       : uploadSpeed >= 10
-        ? "Good for YouTube uploads and 1080p live streaming."
-        : "Upload is the bottleneck. Large uploads and livestreams will feel tight.";
+        ? "Bien para Twitch o YouTube en 1080p y subidas normales."
+        : "La subida es el cuello de botella. Los directos y uploads grandes iran justos.";
 
-  const summary = `${downloadSpeed} Mbps down, ${uploadSpeed} Mbps up, ${latency} ms RTT, ${round(packetLoss)}% loss.`;
+  const summary = `${downloadSpeed} Mbps de descarga, ${uploadSpeed} Mbps de subida, ${latency} ms de latencia y ${round(packetLoss)}% de perdida.`;
 
   const recommendations = [
     uploadSpeed < 10
-      ? "If you stream or upload often, uplink is the first thing to improve. Wired upload tests are worth repeating."
-      : "Upload is healthy enough for regular creator work; keep backups and sync jobs off during live sessions.",
+      ? "Si haces directos o subes video, lo primero a mejorar es la subida. Repite el test por cable."
+      : "La subida da para trabajo de creador. Evita copias en nube y sync mientras emites.",
     bufferbloat > 30
-      ? "Latency spikes under load are high. SQM/QoS or pausing background downloads will help more than raw bandwidth."
-      : "Latency under load looks controlled, which is what keeps calls and games smooth while someone else downloads.",
+      ? "La latencia se dispara cuando cargas la linea. SQM/QoS o frenar descargas te ayudara mucho."
+      : "La latencia bajo carga esta bastante controlada, buena senal para casa compartida.",
     simultaneous4kStreams < 1
-      ? "This line is better suited to HD than 4K. Wi-Fi quality can make the experience worse than the raw speed suggests."
-      : `Realistically you have room for about ${simultaneous4kStreams} concurrent 4K stream${simultaneous4kStreams === 1 ? "" : "s"} before contention starts.`,
+      ? "Esta red encaja mejor con HD que con 4K. Un mal Wi-Fi puede empeorarlo aun mas."
+      : `Tienes margen para unas ${simultaneous4kStreams} reproducciones 4K a la vez antes de notar pelea por ancho de banda.`,
   ];
 
   const baseResult: StreamingResults = {
@@ -327,24 +327,24 @@ export const buildStreamingResults = (
       recommendations,
       [
         {
-          title: "Home and work",
+          title: "Casa y trabajo",
           status: readiness(clamp(downloadSpeed * 1.2 + uploadSpeed * 3 - latency * 0.7 - packetLoss * 20, 0, 100)),
           detail: homeProfile,
         },
         {
-          title: "Twitch / YouTube live",
+          title: "Twitch y YouTube",
           status: readiness(clamp(uploadSpeed * 5 - jitter * 2.2 - packetLoss * 18 - bufferbloat * 0.3, 0, 100)),
           detail: creatorProfile,
         },
         {
-          title: "Gaming while others stream",
+          title: "Jugar con la casa conectada",
           status: readiness(clamp(100 - latency * 1.1 - jitter * 3 - bufferbloat * 0.7 - packetLoss * 18, 0, 100)),
-          detail: "This mixes bandwidth and latency under load, which is what usually breaks shared home networks.",
+          detail: "Aqui mezclamos ancho de banda y latencia bajo carga, que es donde fallan muchas redes de casa.",
         },
       ],
       connectionInfo,
       networkHints,
-      "10 second multi-stream download and upload against Cloudflare speed endpoints",
+      "Descarga y subida sostenidas durante 10 segundos contra Cloudflare",
       metrics.samples,
     ),
   };
