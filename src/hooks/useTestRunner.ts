@@ -330,7 +330,7 @@ export const useTestRunner = () => {
         uploadMetrics = await runThroughputWorker(
           "/workers/upload-worker.js",
           "START_UPLOAD",
-          "https://speed.cloudflare.com/__up",
+          "/api/upload",
           (speedMbps, elapsedSeconds) => {
             setProgress((state) => ({
               ...state,

@@ -7,7 +7,7 @@ self.onmessage = async (e) => {
   if (type === 'START_UPLOAD') {
     const TEST_DURATION_MS = 10000; // 10 seconds
     const startTime = performance.now();
-    const CHUNK_SIZE = 4000000; // 4MB per chunk to prevent memory bloat
+    const CHUNK_SIZE = 524288; // 512KB per chunk (more responsive + stays under Edge limits)
     
     // Create an uncompressable payload
     const payload = new Uint8Array(CHUNK_SIZE);
@@ -16,6 +16,7 @@ self.onmessage = async (e) => {
     }
     
     let totalBytesUploaded = 0;
+    let successfulRequests = 0;
 
     const controllers = Array.from({ length: streams }, () => new AbortController());
 
@@ -35,13 +36,18 @@ self.onmessage = async (e) => {
               }
             });
             
-            if (!response.ok) continue;
+            if (!response.ok) {
+              // On error, wait a bit before retrying to prevent rapid-fire failures
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
             
             const chunkEndTime = performance.now();
             totalBytesUploaded += CHUNK_SIZE;
+            successfulRequests += 1;
             
             const elapsedMs = chunkEndTime - startTime;
-            if (elapsedMs > 250) {
+            if (elapsedMs > 100) {
               const currentTotalMbps = (totalBytesUploaded * 8) / (elapsedMs / 1000) / 1000000;
               self.postMessage({ 
                 type: 'UPLOAD_PROGRESS', 
@@ -59,6 +65,11 @@ self.onmessage = async (e) => {
       await new Promise(resolve => setTimeout(resolve, TEST_DURATION_MS));
       controllers.forEach(c => c.abort());
       await Promise.allSettled(fetchPromises);
+
+      if (successfulRequests === 0 || totalBytesUploaded === 0) {
+        self.postMessage({ type: 'ERROR', error: 'All upload requests failed.' });
+        return;
+      }
 
       const durationSeconds = Math.max((performance.now() - startTime) / 1000, 0.1);
       const sustainedMbps = (totalBytesUploaded * 8) / durationSeconds / 1000000;
