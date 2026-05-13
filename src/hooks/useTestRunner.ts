@@ -330,7 +330,7 @@ export const useTestRunner = () => {
         uploadMetrics = await runThroughputWorker(
           "/workers/upload-worker.js",
           "START_UPLOAD",
-          "/api/upload",
+          process.env.NEXT_PUBLIC_UPLOAD_NODE_URL || "/api/upload",
           (speedMbps, elapsedSeconds) => {
             setProgress((state) => ({
               ...state,
